@@ -7,6 +7,7 @@
 ###########################################################
 create_project -force $design $projdir -part $partname
 set_property target_language Verilog [current_project]
+set_property verilog_define CFG_ASIC=0 [current_fileset]
 
 ###########################################################
 # Create Report/Results Directory
