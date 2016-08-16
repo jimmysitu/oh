@@ -35,8 +35,8 @@ if {[llength $ip_files] != 0} {
     #Set mode for IP
     foreach file $ip_files {
 	#TODO: is this needed?
-	set file_obj [get_files -of_objects [get_filesets sources_1] $file]
-	set_property "synth_checkpoint_mode" "Singular" $file_obj
+	    #set file_obj [get_files -of_objects [get_filesets sources_1] $file]
+	    #set_property "synth_checkpoint_mode" "Singular" $file_obj
     }    
     #RERUN/UPGRADE IP
     upgrade_ip [get_ips]
