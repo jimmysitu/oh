@@ -4,6 +4,7 @@
 create_project -force $design $projdir -part $partname 
 set_property target_language Verilog [current_project]
 set_property source_mgmt_mode None [current_project]
+set_property verilog_define CFG_ASIC=0 [current_fileset]
 
 ###########################################################
 # Create filesets and add files to project
