@@ -4,10 +4,10 @@ module load(/*AUTOARG*/);
     input   rst;
     input             valid;    // new work is valid
     input   [639:0]   work;     // 80B work data
-% for i in range(0, 16):    
-    output  [64:0]    m${"%02d" % i};
+% for i in range(0, 16):
+    output  [63:0]    m${"%02d" % i};
 % endfor
-    
+
     /*AUTOWIRE*/
     /*AUTOREG*/
 
