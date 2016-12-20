@@ -4,12 +4,13 @@ BIN  = ${PWD}/../bin
 HDL  = ${PWD}/../hdl
 TV2V = ${BIN}/tv2v.py
 WAVE ?= NONE
+WFON ?= 17000000
 
 miner: hdl dv
-	cd build;iverilog -D${WAVE} -DFAST_SIM -DVECTORS=2 -s tb_siaminer -o tb_siaminer.vvp *.v
+	cd build;iverilog -D${WAVE} -DFAST_SIM -DVECTORS=3 -s tb_siaminer -o tb_siaminer.vvp *.v
 
 core: hdl dv
-	cd build;iverilog -D${WAVE} -DVECTORS=2 -s tb_siacore -o tb_siacore.vvp *.v
+	cd build;iverilog -D${WAVE} -DVECTORS=3 -s tb_siacore -o tb_siacore.vvp *.v
 
 dv:
 	cp *.v ./build/.
@@ -26,10 +27,13 @@ hdl:
 	cd build;emacs --batch -l ${BIN}/verilog-mode.el *.v -f verilog-batch-auto
 
 sim_core: core
-	./build/tb_siacore.vvp
+	export IVERILOG_DUMPER=fst;time vvp -l sim.log ./build/tb_siacore.vvp +wfon=${WFON}
 
 sim_miner: miner
-	./build/tb_siaminer.vvp
+	export IVERILOG_DUMPER=fst;time vvp -l sim.log ./build/tb_siaminer.vvp +wfon=${WFON}
+
+see:
+	fst2vcd waveform.fst | vcd2fsdb
 
 clean:
 	rm -rf build

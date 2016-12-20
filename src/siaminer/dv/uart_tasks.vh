@@ -1,4 +1,5 @@
-// vim: ft=verilog ts=4
+/* vim:ft=verilog ts=4 */
+
 //------------------------------------------------------------------------------
 // uart tasks:
 //		send_serial		serial transmitter 

@@ -8,9 +8,9 @@ module tb_siacore();
 
     /*AUTOWIRE*/
     /*AUTOREG*/
-`ifdef VCD
+`ifdef WF
     initial begin
-        $dumpfile("waveform.vcd");
+        $dumpfile("waveform.fst");
         $dumpvars(0, tb_siacore);
     end
 `endif

@@ -11,10 +11,19 @@ module tb_siaminer();
 
 /*AUTOWIRE*/
 /*AUTOREG*/
-`ifdef VCD
+
+integer wfon;
+`ifdef WF
     initial begin
-        $dumpfile("waveform.vcd");
+        $dumpfile("waveform.fst");
         $dumpvars(0, tb_siaminer);
+        if(!$value$plusargs("wfon=%d", wfon)) begin
+            wfon = 0;
+        end else
+            $display($time, " Dump waveform at %d", wfon);
+        
+        #wfon $dumpon;
+        $display($time, " Start to dumping waveform");
     end
 `endif
 
@@ -42,7 +51,7 @@ module tb_siaminer();
     end 
 
 `ifdef FAST_SIM
-    // 100MHz clk
+    // 10MHz clk
     initial begin
         clk = 1'b1;
         forever #50 clk = ~clk;
@@ -54,6 +63,12 @@ module tb_siaminer();
         forever #5 clk = ~clk;
     end
 `endif
+
+    // Overtime of verification
+    initial begin
+        #50000000 $display($time, " Overtime!");
+        $finish;
+    end
 
     // Load data, and set valid
     reg [639:0] work   ;
@@ -94,10 +109,6 @@ module tb_siaminer();
     reg [31:0] rx_data;
 
 
-    // Overtime of verification
-    initial begin
-        #1000000000 $finish;
-    end
 
     initial begin 
         // defualt value of serial output 
@@ -108,10 +119,10 @@ module tb_siaminer();
         repeat (100) @ (posedge clk);
 
         // binary mode simulation 
-        $display("Starting simulation");
+        $display($time, " Starting simulation");
 
-        // loop test
-        $display("Sending test command");
+        // ============== loop test ================
+        $display($time, " Sending test command");
         tx_cmd = 8'h1;
         tx_len = 8'h1;
         // transmit command, header, cmd, len, data
@@ -120,14 +131,18 @@ module tb_siaminer();
         send_serial(tx_len, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
         tx_byte = {$random};
         send_serial(tx_byte, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
-        $display("Sent test command" );
+        $display($time, " Sent test command" );
 
-        // work test
-        $display("Sending work command");
+        // ================ work test ================
+        @(posedge clk);
+        $display($time, " Sending work command");
+        $display($time, " Sending work in address 0x%d", addr);
         tx_cmd = 8'h0;
         tx_len = 8'h1;
         tx_len = 8'd84;
         tx_data = {target, work};
+        tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
+        $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
 
         // transmit command, header, cmd, len, data
         send_serial(8'hAA, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
@@ -148,20 +163,22 @@ module tb_siaminer();
                 @(posedge clk);
         end
 
-
-        // regression test
+        // ================ regression test ================
+        @(posedge clk);
         while(addr < `VECTORS) begin
             tx_cmd = {$random} % 2;
             if(tx_cmd == 8'h0) begin
-                $display("Sending work command" );
+                $display($time, " Sending work command");
+                $display($time, " Sending work in address 0x%d", addr);
                 tx_len = 8'd84;
                 tx_data = {target, work};
                 tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
+                $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
             end else if(tx_cmd == 8'h1) begin
-                $display("Sending loop test command" );
+                $display($time, " Sending loop test command");
                 tx_len = 8'h1;
             end else begin
-                $display("Unknown command: %d", tx_cmd);
+                $display($time, " Unknown command: %d", tx_cmd);
             end
 
             // transmit command, header, cmd, len, data
@@ -172,7 +189,7 @@ module tb_siaminer();
                 if(tx_cmd == 8'h1) begin
                     tx_byte = {$random};
                     send_serial(tx_byte, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
-                    $display("loop_test: Loop Data: 0x%02X", tx_byte);
+                    $display($time, " Loop_test: Loop Data: 0x%02X", tx_byte);
                 end else if(tx_cmd == 8'h0) begin
                     tx_byte = tx_data[7:0];
                     tx_data = tx_data >> 8;
@@ -180,16 +197,20 @@ module tb_siaminer();
                 end
                 tx_len = tx_len - 1'b1;
             end
-            $display("Sent command");
+            $display($time, " Sent command");
 
             // wait nonce found if work cmd is sent
             if(tx_cmd == 8'h0) begin
-                while(~found);
+                while(~found)
+                    @(posedge clk);
             end
+
+            @(posedge clk);
+            @(posedge clk);
         end
 
         // delay and finish 
-        $display("All nonces are found, pass!");
+        $display($time, " All nonces are found, pass!");
         #500 $finish;
     end
 
@@ -232,22 +253,22 @@ module tb_siaminer();
                     if(rx_cmd == 8'h00)
                         nonce = {get_serial_data, nonce[31:8]};
                     if(rx_cmd == 8'h01) begin
-                        $display("loop_test: Loop Ack: 0x%02X", get_serial_data);
+                        $display($time, " Loop_test: Loop Ack: 0x%02X", get_serial_data);
                     end
                     rx_len = rx_len - 8'h1;
                 end
 
                 // check nonce
-                if(rx_cmd == 8'h00)begin
-                    if(nonce == golden)
-                        $display("Found nonce: 0x%08X, golden: 0x%08X", nonce, golden);
-                    else begin
-                        $display("Nonce: 0x%08X != Golden: 0x%08X, fail!", nonce, golden);
-                        #10 $finish;
+                if(rx_cmd == 8'h00) begin
+                    if(nonce == golden) begin
+                        $display($time, " Found nonce: 0x%08X, golden: 0x%08X", nonce, golden);
+                        // Next vector
+                        @(posedge clk) found <= 1'b1;
+                        @(posedge clk) found <= 1'b0;
+                    end else begin
+                        $display($time, " Nonce: 0x%08X != Golden: 0x%08X, fail!", nonce, golden);
+                        #100 $finish;
                     end
-                    // Next vector
-                    @(posedge clk) found <= 1'b1;
-                    @(posedge clk) found <= 1'b0;
                 end
             end
         end
@@ -295,18 +316,18 @@ module tb_siaminer();
     
     always @(negedge clk) begin
         if(tb_siaminer.DUT.uUart2core.new_rx_data) begin
-            $display("DUT got new byte");
+            $display($time, " DUT got new byte");
         end
         if(tb_siaminer.DUT.uUart2core.new_tx_data) begin
-            $display("DUT sent new byte");
+            $display($time, " DUT sent new byte");
         end
         if(tb_siaminer.DUT.uUart2core.uParser.rx_last_byte 
             && tb_siaminer.DUT.uUart2core.uParser.new_rx_data) begin
-            $display("DUT got a new command");
+            $display($time, " DUT got a new command");
         end
         if(tb_siaminer.DUT.uUart2core.uParser.tx_last_byte
             && tb_siaminer.DUT.uUart2core.uParser.new_tx_data) begin
-            $display("DUT sent new command");
+            $display($time, " DUT sent new command");
         end
     end
 
