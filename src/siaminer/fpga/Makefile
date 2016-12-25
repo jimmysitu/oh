@@ -18,10 +18,23 @@ M_FLIST += .Xil
 M_FLIST += parallella.bit.bin
 M_FLIST += system_wrapper.bit.bin
 
-.PHONY: all clean
+BIN  = ${PWD}/../bin
+HDL  = ${PWD}/../hdl
+TV2V = ${BIN}/tv2v.py
 
-all: $(M_DEPS)
+.PHONY: all hdl clean
+
+
+all: $(M_DEPS) hdl
 	./build.sh
 
+hdl:
+	-mkdir build
+	${TV2V} -i ${HDL}/load.tv -o ./build/load.v
+	${TV2V} -i ${HDL}/siacore.tv -o ./build/siacore.v
+	cp ${HDL}/*.v ./build/.
+	cd build;emacs --batch -l ${BIN}/verilog-mode.el *.v -f verilog-batch-auto
+
 clean:
+	rm -rf build
 	rm -rf $(M_FLIST)
