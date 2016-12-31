@@ -25,17 +25,30 @@ for r in range(0, 12):
             wStr += "\twire [63:0] a_%s, b_%s, c_%s, d_%s;\n" % (osuf, osuf, osuf, osuf)
         else:
             wStr += "\twire [63:0] a_%s, b_%s, c_%s, d_%s;\n" % (osuf, osuf, osuf, osuf)
+    wStr += "\twire [63:0] m04_%02d, m04_%02d;\n" % (r*2+1, r*2+2)
+    wStr += "\twire vld_%02d, vld_%02d;\n" % (r*2+1, r*2+2)
     wStr += "\n"
 %>
-${wStr} 
-    load uLoad(/*AUTOINST*/);
+${wStr}
+
+    wire loadBusy;
+
+    load uLoad(
+        .busy(loadBusy),
+        /*AUTOINST*/);
+
+    wire        vld_00 = loadBusy;
+    wire [63:0] m04_00 = m04[63:0];
 
     compare uCompare(
+            .m04(m04_24),
             .v0(a_11_09[63:0]),
             .v8(c_11_13[63:0]),
+            .valid(vld_24),
 		    .target({32'h0, target[31:0]}),
             /*AUTOINST*/);
-    
+
+
     // Initial Vectors
     assign a_00_00 = 64'h6a09e667f2bdc928;
     assign a_00_02 = 64'hbb67ae8584caa73b;
@@ -56,6 +69,7 @@ ${wStr}
     assign d_00_02 = 64'h9b05688c2b3e6c1f;
     assign d_00_04 = 64'he07c265404be4294;
     assign d_00_06 = 64'h5be0cd19137e2179;
+
 
     // Signal assignment between rounds
 % for r in range(1, 12):
@@ -78,6 +92,8 @@ ${wStr}
     assign d_${"%02d" % r}_02 = d_${"%02d" % (r-1)}_13;
     assign d_${"%02d" % r}_04 = d_${"%02d" % (r-1)}_15;
     assign d_${"%02d" % r}_06 = d_${"%02d" % (r-1)}_09;
+
+
 % endfor
 
 % for r in range(0, 12):
@@ -121,12 +137,23 @@ sigma = [
     bosuf = "%02d_%02d" % (r, (2*i+1))
     cosuf = "%02d_%02d" % (r, (2*i+1))
     dosuf = "%02d_%02d" % (r, (2*i+1))
+
+    xiStr = ("m" + "%02d" % sigma[r][2*i]  ) if sigma[r][2*i]   != 4 else ("m04_" + "%02d" % (r*2+i//4))
+    yiStr = ("m" + "%02d" % sigma[r][2*i+1]) if sigma[r][2*i+1] != 4 else ("m04_" + "%02d" % (r*2+i//4))
 %>
     mix uMix_${"%02d" % r}_${"%02d" % i}(
         .clk(clk), .rst(rst),
-        .xIn(m${"%02d" % sigma[r][2*i]}),     .yIn(m${"%02d" % sigma[r][2*i+1]}),
+        .xIn(${xiStr}),     .yIn(${yiStr}),
         .aIn (a_${aisuf}), .bIn (b_${bisuf}), .cIn (c_${cisuf}), .dIn (d_${disuf}),
         .aOut(a_${aosuf}), .bOut(b_${bosuf}), .cOut(c_${cosuf}), .dOut(d_${dosuf})
     );
+    % if 3 == (i % 4):
+
+    pipe Upipe_${"%02d" % r}_${"%02d" % i}(
+        .clk(clk), .rst(rst), .found(found),
+        .m04In(m04_${"%02d" % (r*2+i//4)}), .m04Out(m04_${"%02d" % (r*2+1+i//4)}),
+        .vldIn(vld_${"%02d" % (r*2+i//4)}), .vldOut(vld_${"%02d" % (r*2+1+i//4)})
+    );
+    % endif
 % endfor
 </%def>

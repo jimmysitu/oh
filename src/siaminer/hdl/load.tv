@@ -4,12 +4,26 @@ module load(/*AUTOARG*/);
     input   rst;
     input             valid;    // new work is valid
     input   [639:0]   work;     // 80B work data
+    input             found;    // nonce found
+    output            busy;     // busy unitl nonce found
 % for i in range(0, 16):
     output  [63:0]    m${"%02d" % i};
 % endfor
 
     /*AUTOWIRE*/
     /*AUTOREG*/
+
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
+            busy <= 1'b0;
+        end else if(found) begin
+            busy <= 1'b0;
+        end else if(valid) begin
+            busy <= 1'b1;
+        end else begin
+            busy <= busy;
+        end
+    end
 
 <%
 rstStr = ""
@@ -28,11 +42,14 @@ for i in range(0, 16):
         rstStr += "\t\t\tm%02d <= work[%4d: %4d];\n" % (i, (64*(i+1)-1), (64*i))
         comStr += "\t\t\tm%02d <= m%02d;\n" % (i, i)
 %>
-    always @(posedge clk) begin
-        if(rst | valid) begin
+    always @(posedge clk or posedge rst) begin
+        if(rst) begin
+${rstStr}
+        end else if(valid) begin
 ${rstStr}
         end else begin
 ${comStr}
         end
     end
+
 endmodule

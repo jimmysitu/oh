@@ -4,7 +4,7 @@ BIN  = ${PWD}/../bin
 HDL  = ${PWD}/../hdl
 TV2V = ${BIN}/tv2v.py
 WAVE ?= NONE
-WFON ?= 17000000
+WFON ?= 0
 
 miner: hdl dv
 	cd build;iverilog -D${WAVE} -DFAST_SIM -DVECTORS=3 -s tb_siaminer -o tb_siaminer.vvp *.v

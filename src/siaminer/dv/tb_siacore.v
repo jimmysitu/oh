@@ -8,10 +8,18 @@ module tb_siacore();
 
     /*AUTOWIRE*/
     /*AUTOREG*/
+integer wfon;
 `ifdef WF
     initial begin
         $dumpfile("waveform.fst");
         $dumpvars(0, tb_siacore);
+        if(!$value$plusargs("wfon=%d", wfon)) begin
+            wfon = 0;
+        end else
+            $display($time, " Dump waveform at %d", wfon);
+        
+        #wfon $dumpon;
+        $display($time, " Start to dumping waveform");
     end
 `endif
 
@@ -44,35 +52,43 @@ module tb_siacore();
     reg         valid  ;
     integer addr;
     // Getting data and valid
-    always @(posedge clk) begin
-        if(rst == 1'b1) begin
-            work    <= 640'h0;
-            target  <= 32'h0;
-            golden  <= 32'h0;
-            valid   <= 1'b0;
-            addr    <= 0;
-        end else if(busy) begin
-            // Wait when siacore is doing its job
-            work    <= workData[addr];
-            target  <= targetData[addr];
-            golden  <= goldenData[addr];
-            valid   <= 1'b0;
-            addr    <= addr;
-        end else if(found) begin
+    initial begin
+        // wait for rst to de-assert 
+        work    = 640'h0;
+        target  = 32'h0;
+        golden  = 32'h0;
+        valid   = 1'b0;
+        addr    = 0;
+
+        while(rst) @(posedge clk);
+        // wait for another 100 clk cycles before starting simulation 
+        repeat(100) @(posedge clk);
+
+        work    = workData[addr];
+        target  = targetData[addr];
+        golden  = goldenData[addr];
+        valid   = 1'b0;
+
+        @(posedge clk);
+        while(addr < `VECTORS) begin
             // Getting new work if nonce is found
-            work    <= workData[addr];
-            target  <= targetData[addr];
-            golden  <= goldenData[addr];
-            valid   <= 1'b1;
-            addr    <= addr + 1;
-        end else begin
-            // No busy and found, keep send the same data
-            work    <= workData[addr];
-            target  <= targetData[addr];
-            golden  <= goldenData[addr];
-            valid   <= 1'b1;
-            addr    <= addr;
+            @(posedge clk);
+            work    = workData[addr];
+            target  = targetData[addr];
+            golden  = goldenData[addr];
+            valid   = 1'b1;
+            addr    = addr + 1;
+
+            @(posedge clk);
+            valid   = 1'b0;
+
+            while(~found)
+                @(posedge clk);
         end
+
+        $display("All nonces are found, pass!");
+        repeat (10) @(posedge clk);
+        $finish;
     end
 
     // Force initial nonce just a little smaller than golen
@@ -89,7 +105,9 @@ module tb_siacore();
 
     // Overtime of verification
     initial begin
-        #1000 $finish;
+        #3000;
+        $display("Simulation Overtime!");
+        $finish;
     end
     // Check nonce if found
     always @(negedge clk) begin
@@ -97,12 +115,7 @@ module tb_siacore();
             $display("Found nonce: 0x%08X, golden: 0x%08X", nonce, golden);
             if(nonce != golden) begin
                 $display("Nonce: 0x%08X != Golden: 0x%08X, fail!", nonce, golden);
-                #5 $finish;
-            end
-        end else begin
-            if(addr >= `VECTORS) begin
-                $display("All nonces are found, pass!");
-                #5 $finish;
+                #50 $finish;
             end
         end
     end

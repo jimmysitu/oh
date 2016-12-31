@@ -19,7 +19,7 @@ module mix(/*AUTOARG*/);
 
     /*AUTOWIRE*/
     /*AUTOREG*/
-    
+
     reg [63:0] a0, a4;
     reg [63:0] b2, b3, b6, b7;
     reg [63:0] c2, c6;
@@ -55,10 +55,25 @@ module mix(/*AUTOARG*/);
         b7[63:0] = {b6[62:0], b6[63]};
     end
 
-    assign aOut[63:0] = a4[63:0];
-    assign bOut[63:0] = b7[63:0];
-    assign cOut[63:0] = c6[63:0];
-    assign dOut[63:0] = d5[63:0];
+    // Register output
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            aOut[63:0] <= 64'b0;
+            bOut[63:0] <= 64'b0;
+            cOut[63:0] <= 64'b0;
+            dOut[63:0] <= 64'b0;
+        end else begin
+            aOut[63:0] <= a4[63:0];
+            bOut[63:0] <= b7[63:0];
+            cOut[63:0] <= c6[63:0];
+            dOut[63:0] <= d5[63:0];
+        end
+    end
+
+//    assign aOut[63:0] = a4[63:0];
+//    assign bOut[63:0] = b7[63:0];
+//    assign cOut[63:0] = c6[63:0];
+//    assign dOut[63:0] = d5[63:0];
 
 endmodule
 
