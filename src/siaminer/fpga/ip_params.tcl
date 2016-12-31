@@ -13,4 +13,3 @@ set ip_files   []
 
 set constraints_files []
 
-set_property value ACTIVE_HIGH [ipx::get_bus_parameters POLARITY -of_objects [ipx::get_bus_interfaces rst -of_objects [ipx::current_core]]]

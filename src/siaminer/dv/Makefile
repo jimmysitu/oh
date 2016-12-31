@@ -6,6 +6,10 @@ TV2V = ${BIN}/tv2v.py
 WAVE ?= NONE
 WFON ?= 0
 
+
+real_miner: hdl dv
+	cd build;iverilog -D${WAVE} -DVECTORS=3 -s tb_siaminer -o tb_siaminer.vvp *.v
+
 miner: hdl dv
 	cd build;iverilog -D${WAVE} -DFAST_SIM -DVECTORS=3 -s tb_siaminer -o tb_siaminer.vvp *.v
 
@@ -30,6 +34,9 @@ sim_core: core
 	export IVERILOG_DUMPER=fst;time vvp -l sim.log ./build/tb_siacore.vvp +wfon=${WFON}
 
 sim_miner: miner
+	export IVERILOG_DUMPER=fst;time vvp -l sim.log ./build/tb_siaminer.vvp +wfon=${WFON}
+
+sim_real_miner: real_miner
 	export IVERILOG_DUMPER=fst;time vvp -l sim.log ./build/tb_siaminer.vvp +wfon=${WFON}
 
 see:

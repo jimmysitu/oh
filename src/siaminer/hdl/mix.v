@@ -57,7 +57,7 @@ module mix(/*AUTOARG*/);
 
     // Register output
     always @(posedge clk or posedge rst) begin
-        if (rst) begin
+        if(rst) begin
             aOut[63:0] <= 64'b0;
             bOut[63:0] <= 64'b0;
             cOut[63:0] <= 64'b0;

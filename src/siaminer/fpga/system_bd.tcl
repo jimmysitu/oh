@@ -180,7 +180,7 @@ CONFIG.PCW_USE_FABRIC_INTERRUPT {1} CONFIG.PCW_USE_M_AXI_GP1 {1} \
 CONFIG.PCW_USE_S_AXI_HP1 {1}  ] $processing_system7_0
 
   # Create instance: siaminer_0, and set properties
-  set siaminer_0 [ create_bd_cell -type ip -vlnv user.org:user:siaminer:1.0 siaminer_0 ]
+  set siaminer_0 [ create_bd_cell -type ip -vlnv www.jimmystone.cn:user:siaminer:1.0 siaminer_0 ]
 
   # Create port connections
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_pins siaminer_0/rst]

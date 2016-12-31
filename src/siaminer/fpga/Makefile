@@ -26,7 +26,9 @@ TV2V = ${BIN}/tv2v.py
 
 
 all: $(M_DEPS) hdl
-	./build.sh
+	source /cad/Xilinx/Vivado/2015.2/settings64.sh; \
+		export PATH=$$PATH:/cad/Xilinx/Vivado/2015.2/bin;\
+		./build.sh
 
 hdl:
 	-mkdir build
