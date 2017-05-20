@@ -16,10 +16,13 @@ input rst;
     `define D_BAUD_FREQ         12'h240
     `define D_BAUD_LIMIT        16'h09F5
 `else
-    // baud rate generator parameters for 115200 baud on 100MHz clock 
-    `define D_BAUD_FREQ         12'h120
-    `define D_BAUD_LIMIT        16'h3BE9
+    // baud rate generator parameters for 115200 baud on 50MHz clock 
+    `define D_BAUD_FREQ         12'h240
+    `define D_BAUD_LIMIT        16'h3AC9
 `endif
+// baud rate generator parameters for 115200 baud on 100MHz clock 
+//`define D_BAUD_FREQ         12'h120
+//`define D_BAUD_LIMIT        16'h3BE9
 // baud rate generator parameters for 115200 baud on 40MHz clock 
 //`define D_BAUD_FREQ         12'h90
 //`define D_BAUD_LIMIT        16'h0ba5

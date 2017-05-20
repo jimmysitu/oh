@@ -8,5 +8,8 @@ source ../../common/fpga/system_init.tcl
 #STEP 3 (OPTIONAL): EDIT system.bd in VIVADO gui, then go to STEP 4.
 ##...
 
+#STEP 3a Project settings 
+source ./system_params.tcl
+
 #STEP 4: SYNTEHSIZE AND CREATE BITSTRAM
 source ../../common/fpga/system_build.tcl

@@ -3,7 +3,7 @@
 set design system
 
 #Project directory ("." recommended)
-set projdir ./
+set projdir [pwd]
 
 #Device name
 set partname "xc7z020clg400-1"

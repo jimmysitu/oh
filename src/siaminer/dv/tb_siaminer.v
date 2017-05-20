@@ -57,10 +57,10 @@ integer wfon;
         forever #50 clk = ~clk;
     end
 `else
-    // 100MHz clk
+    // 50MHz clk
     initial begin
         clk = 1'b1;
-        forever #5 clk = ~clk;
+        forever #10 clk = ~clk;
     end
 `endif
 
