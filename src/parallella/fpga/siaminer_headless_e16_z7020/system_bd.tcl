@@ -265,7 +265,6 @@ CONFIG.PCW_USE_S_AXI_HP1 {1}  ] $processing_system7_0
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins axi_mem_intercon/M00_ARESETN] [get_bd_pins axi_mem_intercon/S00_ARESETN] [get_bd_pins parallella_base_0/m_axi_aresetn] [get_bd_pins parallella_base_0/s_axi_aresetn] [get_bd_pins parallella_base_0/sys_nreset] [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins processing_system7_0_axi_periph/M00_ARESETN] [get_bd_pins processing_system7_0_axi_periph/S00_ARESETN]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_pins siaminer_0/rst]
   connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_mem_intercon/ACLK] [get_bd_pins axi_mem_intercon/M00_ACLK] [get_bd_pins axi_mem_intercon/S00_ACLK] [get_bd_pins parallella_base_0/sys_clk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/M_AXI_GP1_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP1_ACLK] [get_bd_pins processing_system7_0_axi_periph/ACLK] [get_bd_pins processing_system7_0_axi_periph/M00_ACLK] [get_bd_pins processing_system7_0_axi_periph/S00_ACLK]
-  connect_bd_net -net processing_system7_0_FCLK_CLK1 [get_bd_pins processing_system7_0/FCLK_CLK1] [get_bd_pins siaminer_0/clk]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET0_N]
   connect_bd_net -net processing_system7_0_GPIO_O [get_bd_pins parallella_base_0/ps_gpio_o] [get_bd_pins processing_system7_0/GPIO_O]
   connect_bd_net -net processing_system7_0_GPIO_T [get_bd_pins parallella_base_0/ps_gpio_t] [get_bd_pins processing_system7_0/GPIO_T]
@@ -306,4 +305,6 @@ CONFIG.PCW_USE_S_AXI_HP1 {1}  ] $processing_system7_0
 
 create_root_design ""
 
+
+puts "\n\nWARNING: This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
 
