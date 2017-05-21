@@ -1,110 +1,160 @@
-//#######################################################
-//# Target specific IO logic (fast, timing sensitive)
-//#######################################################
-module mrx_io (/*AUTOARG*/
-   // Outputs
-   io_access, io_packet,
-   // Inputs
-   nreset, rx_clk, ddr_mode, lsbfirst, framepol, rx_packet, rx_access
-   );
+//#############################################################################
+//# Purpose: MIO Receiver IO                                                  #
+//#############################################################################
+//# Author:   Andreas Olofsson                                                #
+//# License:  MIT (see LICENSE file in OH! repository)                        # 
+//#############################################################################
 
-   //#####################################################################
-   //# INTERFACE
-   //#####################################################################
-
-   //parameters
-   parameter  NMIO  = 16;  
-
-   //RESET
-   input               nreset;        // async active low reset
-   input 	       rx_clk;        // clock for IO
-   input 	       ddr_mode;      // select between sdr/ddr data
-   input 	       lsbfirst;      // shufle data in msbfirst mode
-   input 	       framepol;      // frame polarity
+module mrx_io #(parameter IOW    = 64,          // IO width
+	        parameter TARGET = "GENERIC"  // target selector
+		)
    
-   //IO interface
-   input [NMIO-1:0]    rx_packet;     // data for IO
-   input 	       rx_access;     // access signal for IO
+   ( //reset, clk, cfg
+     input 	      nreset, // async active low reset
+     input 	      ddr_mode, // select between sdr/ddr data
+     input [1:0]      iowidth, // dynamically configured io bus width
+     //IO interface
+     input 	      rx_clk, // clock for IO
+     input [IOW-1:0]  rx_packet, // data for IO
+     input 	      rx_access, // access signal for IO
+     //FIFO interface (core side)
+     output 	      io_access,// fifo write
+     output reg [7:0] io_valid, // fifo byte valid
+     output [63:0]    io_packet // fifo packet
+     );
    
-   //FIFO interface (core side)
-   output 	       io_access;     // fifo packet valid
-   output [2*NMIO-1:0] io_packet;     // fifo packet
-
-   //#####################################################################
-   //# BODY
-   //#####################################################################
-
-   //regs
-   reg 		       io_access;
-   wire [2*NMIO-1:0]   ddr_data;
-   reg [2*NMIO-1:0]    sdr_data;
-   reg 		       byte0_sel;
-   wire 	       io_nreset;
-   wire 	       rx_frame;
+   // local wires
+   wire [IOW-1:0]    ddr_data;
+   wire 	     io_nreset;
+   wire [63:0] 	     io_data;
+   wire [63:0] 	     mux_data;
+   wire [7:0] 	     data_select;
+   wire [7:0] 	     valid_input;
+   wire [7:0] 	     valid_next;   
+   wire [IOW/2-1:0]  ddr_even;
+   wire [IOW/2-1:0]  ddr_odd;   
+   wire 	     io_frame;
+   wire 	     dmode8;
+   wire 	     dmode16;
+   wire 	     dmode32;
+   wire 	     dmode64;
+   wire 	     reload;
+   wire 	     transfer_done;
+   wire 	     transfer_active;
    
+   reg [63:0] 	     shiftreg;
+   reg [IOW-1:0]     sdr_data;
+   reg [1:0] 	     rx_access_reg;
    
-   //########################################
-   //# CLOCK, RESET
-   //########################################
-
-   //synchronize reset to rx_clk
-   oh_rsync oh_rsync(.nrst_out	(io_nreset),
-		     .clk	(rx_clk),
-		     .nrst_in	(nreset)
-		     );
-      
-   //########################################
-   //# SELECT FRAME POLARITY
-   //########################################
-
-   assign rx_frame =  framepol ^ rx_access;
    
    //########################################
-   //# ACCESS (SDR)
+   //# STATE MACHINE
    //########################################
 
+   assign dmode8   = (iowidth[1:0]==2'b00);   
+   assign dmode16  = ((iowidth[1:0]==2'b01) & ~ddr_mode) |
+                     (iowidth[1:0]==2'b00) & ddr_mode;   
+   assign dmode32  = ((iowidth[1:0]==2'b10) & ~ddr_mode) |
+                     (iowidth[1:0]==2'b01) & ddr_mode;   
+   assign dmode64  = ((iowidth[1:0]==2'b11) & ~ddr_mode) |
+                     (iowidth[1:0]==2'b10) & ddr_mode;   
+
+   assign valid_input[7:0] = dmode8  ? 8'b00000001 :
+			     dmode16 ? 8'b00000011 :
+			     dmode32 ? 8'b00001111 :
+                                       8'b11111111;
+   
+   assign valid_next[7:0] = dmode8  ? {io_valid[6:0],1'b1}     :
+			    dmode16 ? {io_valid[5:0],2'b11}    :
+                            dmode32 ? {io_valid[3:0],4'b1111} :
+			               8'b11111111;
+ 
+   //Keep track of valid bytes in shift register
    always @ (posedge rx_clk or negedge io_nreset)
      if(!io_nreset)
-       io_access <= 1'b0;
+       io_valid[7:0] <= 8'b0;
+     else if(reload)
+       io_valid[7:0] <= valid_input[7:0];   
+     else if(io_frame)
+       io_valid[7:0] <= valid_next[7:0];
      else
-       io_access <= rx_frame;
+       io_valid[7:0] <= 8'b0;
    
+   assign reload = (io_frame &  transfer_done) |  // continuing stream
+		   (io_frame & ~transfer_active); // new frame
+
+   assign transfer_active = |io_valid[7:0];
+   assign transfer_done   = &io_valid[7:0];
+
+   //Access signal for FIFO
+   assign io_access = transfer_done                 | // full vector
+		      (~io_frame & transfer_active);  // partial vector 
+          
    //########################################
-   //# DATA (DDR) 
+   //# DATA CAPTURE
    //########################################
-   
-   oh_iddr #(.DW(NMIO))
-   data_iddr(.q1			(ddr_data[NMIO-1:0]),
-	     .q2			(ddr_data[2*NMIO-1:NMIO]),
+      
+   // DDR
+   oh_iddr #(.DW(IOW/2))
+   data_iddr(.q1			(ddr_even[IOW/2-1:0]),
+	     .q2			(ddr_odd[IOW/2-1:0]),
 	     .clk			(rx_clk),
-	     .ce			(rx_frame),
-	     .din			(rx_packet[NMIO-1:0]));
+	     .ce			(rx_access),
+	     .din			(rx_packet[IOW/2-1:0]));
 
-   //########################################
-   //# DATA (SDR) 
-   //########################################
-   //select 2nd byte (stall on this signal)
-
+   assign ddr_data[IOW-1:0] = (iowidth[1:0]==2'b00) ? {ddr_odd[3:0],ddr_even[3:0]}   :
+			      (iowidth[1:0]==2'b01) ? {ddr_odd[7:0],ddr_even[7:0]}   :
+			      (iowidth[1:0]==2'b10) ? {ddr_odd[15:0],ddr_even[15:0]} :
+			                              {ddr_odd[31:0],ddr_even[31:0]};
+    
+   // SDR
    always @ (posedge rx_clk)
-     if(~rx_frame)
-       byte0_sel <= 1'b1;
-     else if (~ddr_mode)
-       byte0_sel <= rx_frame ^ byte0_sel;
+     if(rx_access)
+       sdr_data[IOW-1:0] <= rx_packet[IOW-1:0];
+
+   // select between ddr/sdr data
+   assign io_data[IOW-1:0]   = ddr_mode ? ddr_data[IOW-1:0] :
+                                          sdr_data[IOW-1:0];
+
+
+   //align data based on IOW
+   assign mux_data[IOW-1:0] = dmode8  ? {(8){io_data[7:0]}}  :
+			      dmode16 ? {(4){io_data[15:0]}} :
+			      dmode32 ? {(2){io_data[31:0]}} :
+			                    io_data[IOW-1:0];
    
-   always @ (posedge rx_clk)
-     if(byte0_sel)
-       sdr_data[NMIO-1:0]  <= rx_packet[NMIO-1:0];
+   // pipeline access signal
+   always @ (posedge rx_clk or negedge io_nreset)
+     if(!io_nreset)
+       rx_access_reg[1:0] <= 1'b0;
      else
-       sdr_data[2*NMIO-1:NMIO] <= rx_packet[NMIO-1:0];
+       rx_access_reg[1:0] <= {rx_access_reg[0],rx_access};
 
+   assign io_frame = ddr_mode ? rx_access_reg[1] :
+                                rx_access_reg[0];
+    
    //########################################
-   //# HANDL DDR/SDR
+   //# PACKETIZER
    //########################################
+
+   //detect selection based on valid pattern edge
+   assign data_select[7:0] = reload ? valid_input[7:0] :
+			              valid_next[7:0] & ~io_valid[7:0];
    
-   assign io_packet[2*NMIO-1:0] =  ~ddr_mode             ? sdr_data[2*NMIO-1:0] :
-			  	    ddr_mode & ~lsbfirst ? {ddr_data[NMIO-1:0],
-				   		           ddr_data[2*NMIO-1:NMIO]} :
-			                                   ddr_data[2*NMIO-1:0];
+   integer 	      i;   
+   always @ (posedge rx_clk)
+     for (i=0;i<8;i=i+1)
+       shiftreg[i*8+:8] <= data_select[i] ? mux_data[i*8+:8] : shiftreg[i*8+:8];
+   
+   assign io_packet[63:0] = shiftreg[63:0];
+   
+   //########################################
+   //# SYNCHRONIZERS
+   //########################################
+
+   oh_rsync oh_rsync(.nrst_out	(io_nreset),
+		     .clk	(rx_clk),
+		     .nrst_in	(nreset));
    
 endmodule // mrx_io
 
