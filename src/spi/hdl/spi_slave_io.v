@@ -1,5 +1,6 @@
 //#############################################################################
 //# Purpose: SPI slave IO state-machine                                       #
+//#          NOTE: only cpol=0, cpha=0 supported for now!!                    #
 //#############################################################################
 //# Author:   Andreas Olofsson                                                #
 //# License:  MIT (see LICENSE file in OH! repository)                        # 
@@ -28,7 +29,7 @@ module spi_slave_io #( parameter PW = 104  // packet width
     //core interface (synced to core clk)
     input 	    clk, // core clock
     input 	    nreset, // async active low reset   
-    output reg 	    access_out, // read or write core command   
+    output 	    access_out, // read or write core command   
     output [PW-1:0] packet_out, // packet
     input 	    wait_in // temporary pushback
     );
@@ -36,6 +37,7 @@ module spi_slave_io #( parameter PW = 104  // packet width
    //###############
    //# LOCAL WIRES
    //###############
+   reg 		    access_reg;   
    reg [1:0] 	    spi_state;   
    reg [7:0] 	    bit_count; 
    reg [7:0] 	    command_reg;   
@@ -44,14 +46,27 @@ module spi_slave_io #( parameter PW = 104  // packet width
    wire [63:0] 	    tx_data;
    wire 	    rx_shift;
    wire 	    tx_load;
-   wire 	    tx_shift;
    wire 	    tx_wait;
    wire 	    ss_sync;
    wire 	    ss_pulse;
    wire 	    spi_fetch;
    wire 	    byte_done;
+   wire 	    shift;
+   wire 	    rx_clk;
+   wire 	    tx_clk;
+   wire 	    next_byte;
    
+   //#################################
+   //# MODES: TODO!
+   //################################# 
    
+   //cpol=0,cpha=0
+   //(launch on negedge, capture on posedge)
+   assign shift    = ~ss & spi_en;   
+   assign rx_clk   = sclk;
+   assign tx_clk   = ~sclk;
+   assign tx_load  = next_byte;
+      
    //#################################
    //# STATE MACHINE
    //################################# 
@@ -67,7 +82,7 @@ module spi_slave_io #( parameter PW = 104  // packet width
      else
        case (spi_state[1:0])
 	 `SPI_IDLE_STATE :  spi_state[1:0] <= `SPI_CMD_STATE;
-	 `SPI_CMD_STATE  :  spi_state[1:0] <= byte_done ? `SPI_DATA_STATE : `SPI_CMD_STATE;
+	 `SPI_CMD_STATE  :  spi_state[1:0] <= next_byte ? `SPI_DATA_STATE : `SPI_CMD_STATE;
 	 `SPI_DATA_STATE :  spi_state[1:0] <= `SPI_DATA_STATE;
        endcase // case (spi_state[1:0])
    
@@ -77,17 +92,20 @@ module spi_slave_io #( parameter PW = 104  // packet width
        bit_count[7:0] <= 'b0;
      else
        bit_count[7:0] <=  bit_count[7:0] + 1'b1;
+
+   assign next_byte   = (spi_state[1:0]!=`SPI_IDLE_STATE) &
+			(bit_count[2:0]==3'b000);
    
    assign byte_done  = (spi_state[1:0]!=`SPI_IDLE_STATE) &
-		       (bit_count[2:0]==3'b000);
+		       (bit_count[2:0]==3'b111);
         
    // command/address register
    // auto increment for every byte
-   always @ (negedge sclk or negedge nreset)
+   always @ (posedge sclk or negedge nreset)
      if(!nreset)
        command_reg[7:0] <= 'b0;
      else if((spi_state[1:0]==`SPI_CMD_STATE) & byte_done)
-       command_reg[7:0] <= rx_data[7:0];
+       command_reg[7:0] <= spi_wdata[7:0];
      else if(byte_done)
        command_reg[7:0] <= {command_reg[7:6],
 			    command_reg[5:0] + 1'b1};
@@ -95,49 +113,31 @@ module spi_slave_io #( parameter PW = 104  // packet width
    //#################################
    //# SPI RX SHIFT REGISTER
    //#################################
-
-   assign rx_shift = ~ss & spi_en;
    
    oh_ser2par #(.PW(8),
 		.SW(1))
    rx_ser2par (// Outputs
 	       .dout	 (rx_data[7:0]),
 	       // Inputs
-	       .clk	 (sclk),
+	       .clk	 (rx_clk),
 	       .din	 (mosi),
 	       .lsbfirst (lsbfirst), //msb first
-	       .shift	 (rx_shift));
-   
-   //####################################
-   //# REMOTE TRANSAXTION SHIFT REGISTER
-   //####################################
-   
-   oh_ser2par #(.PW(PW),
-		.SW(1))
-   e_ser2par (// Outputs
-	      .dout	(packet_out[PW-1:0]),
-	      // Inputs
-	      .clk	(sclk),
-	      .din	(mosi),
-	      .lsbfirst	(lsbfirst), //msb first
-	      .shift	(rx_shift));//rx_shift
+	       .shift	 (shift));
+  
    
    //#################################
    //# TX SHIFT REGISTER
    //#################################
 
-   assign tx_load   = byte_done; // & (spi_state[1:0]==`SPI_CMD_STATE);
-   assign tx_shift  = ~ss & spi_en;
-   
    oh_par2ser #(.PW(8),
 		.SW(1))
    tx_par2ser (.dout	   (miso),
 	       .access_out (),
 	       .wait_out   (tx_wait),
-	       .clk	   (sclk), // shift out on positive edge
+	       .clk	   (tx_clk), // shift out on positive edge
 	       .nreset	   (~ss),
 	       .din	   (spi_rdata[7:0]),
-	       .shift      (tx_shift),
+	       .shift      (shift),
 	       .lsbfirst   (lsbfirst),
 	       .load       (tx_load),
 	       .datasize   (8'd7),
@@ -148,7 +148,7 @@ module spi_slave_io #( parameter PW = 104  // packet width
    //# REGISTER FILE INTERFACE
    //#################################
 
-   assign spi_clk       = sclk;
+   assign spi_clk       = rx_clk;
 
    assign spi_addr[5:0] = command_reg[5:0];   
 
@@ -158,34 +158,54 @@ module spi_slave_io #( parameter PW = 104  // packet width
 			  (command_reg[7:6]==`SPI_WR) & 
 			  (spi_state[1:0]==`SPI_DATA_STATE);
     
-   assign spi_wdata[7:0] = rx_data[7:0];
+   assign spi_wdata[7:0] = lsbfirst ? {mosi, rx_data[7:1]}
+				    : {rx_data[6:0], mosi};
 
-   //###################################
-   //# REMOTE FETCH LOGIC
-   //###################################
+
+   //####################################
+   //# REMOTE TRANSACTION LOGIC
+   //####################################
+`ifdef DV_SPI_BYPASS
+   // Bypass spi for DV (B/C SPI IS SLOOOOOOOW!)
+   // Drive wires "packet_out" and "access_out" from testbench
+`else
+
+   //Create a complete packet (104/136 bits)
+   oh_ser2par #(.PW(PW),
+		.SW(1))
+   e_ser2par (// Outputs
+	      .dout	(packet_out[PW-1:0]),
+	      // Inputs
+	      .clk	(rx_clk),
+	      .din	(mosi),
+	      .lsbfirst	(lsbfirst), //msb first
+	      .shift	(shift));//rx_shift
    
    //sync the ss to free running clk
-   //look for rising edge
-
    oh_dsync dsync (.dout  (ss_sync),
 		   .clk   (clk),
 		   .nreset(nreset),
 		   .din   (ss));
 
    //create single cycle pulse
-   oh_rise2pulse r2p (.out  (ss_pulse),
-		      .clk  (clk),
-		      .in   (ss_sync));
+   oh_rise2pulse r2p (.nreset (nreset),
+		      .out    (ss_pulse),
+		      .clk    (clk),
+		      .in     (ss_sync));
 
    assign spi_fetch = ss_pulse & (command_reg[7:6]==`SPI_FETCH);
    
    // pipeleining and holding pulse if there is wait
    always @ (posedge clk or negedge nreset)
      if(!nreset)
-       access_out <= 1'b0;   
+       access_reg <= 1'b0;   
      else if(~wait_in)
-       access_out <= spi_fetch;
+       access_reg <= spi_fetch;
 
+   assign access_out = access_reg;
+   
+`endif
+   
 endmodule // spi_slave_io
 // Local Variables:
 // verilog-library-directories:("." "../../common/hdl")

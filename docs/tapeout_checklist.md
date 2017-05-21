@@ -7,18 +7,21 @@
 
 | Specification                              | Answer                         |
 |--------------------------------------------|--------------------------------|
+| Is there a written specification?          |                                |
 | Is the datasheet complete and accurate?    |                                |
 | Is there a user guide?                     |                                |
 | What is the chip max power target?         |                                |
 | What is the chip standby power target?     |                                |
 | What is the chip yield target?             |                                |
 | What is the chip cost target?              |                                |
+| What is the max die size?                  |                                |
 | What is the maximum die size?              |                                |
 | How many signal IOs?                       |                                |
 | What is the highest frequency IO?          |                                |
 
 | Design                                     | Answer                         |
 |--------------------------------------------|--------------------------------|
+| In Verilog 2005 used?                      |                                |
 | Are all features implemented?              |                                |
 | Are all issues closed?                     |                                |
 | Has design been through peer review?       |                                |
@@ -37,6 +40,7 @@
 | Was instantiation by name used?            |                                |
 | Does each file contain one module          |                                |
 | Is HDL reuse maximized?                    |                                |
+| Has design been through peer review?       |                                |
 | Are all signals connected?                 |                                |
 | Any floating inputs in design?             |                                |
 | All power-gated signals isolated?          |                                |
@@ -51,6 +55,7 @@
 | >24hrs of random vectors?                  |                                |
 | Randomized clock frequencies?              |                                |
 | Were all open issues closed?               |                                |
+
 | Were all features tested?                  |                                |
 | Simulator support for all features?        |                                |
 | Was design emulated in an FPGA?            |                                |
@@ -58,7 +63,8 @@
 | Was formal equivalence run between HDL/GL? |                                |
 | Is the firmware written?                   |                                |
 | Is there a demo?                           |                                |
-                            
+
+
 | Timing                                     | Answer                         |
 |--------------------------------------------|--------------------------------|
 | All paths constrained?                     |                                |
@@ -131,6 +137,14 @@
 | Are there any open document questions?     |                                |
 | Are all IP design checklists met?          |                                |
 
+| Synthesis                                  | Answer                         |
+|--------------------------------------------|--------------------------------|
+| Was the correct/latest version of HDL used?|                                |
+| Are all EDA warnings/errors acceptable?    |                                |
+| The number of warnings has bee minimized?  |                                |
+
+| Layout                                     | Answer                         |
+|--------------------------------------------|--------------------------------|
 | Synthesis/PNR                              | Answer                         |
 |--------------------------------------------|--------------------------------|
 | Is the flow completely automated?          |                                |
@@ -155,7 +169,6 @@
 | Have gds layer map been manually reviewed? |                                |
 | Has tapeout GDS been manually reviewed?    |                                |
 | XOR check between foundry/design GDSIIs    |                                |
-
 
 | DFM                                        | Answer                         |
 |--------------------------------------------|--------------------------------|
@@ -193,10 +206,10 @@
 | Are all latchup requirements met?          |                                |
 | Design's lowest operating voltage?         |                                |
 | What is the longest signal on the chip?    |                                |
+| Is design sensitive to duty cycle shift?   |                                |
 | What is the max duty-cycle distortion?     |                                |
 | Does design meet EMI constraints?          |                                |
 | ERC runset checks run on GDSII?            |                                |
-
 
 
 
