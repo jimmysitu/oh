@@ -25,7 +25,7 @@ input rst;
 //`define D_BAUD_LIMIT        16'h3BE9
 // baud rate generator parameters for 115200 baud on 40MHz clock 
 //`define D_BAUD_FREQ         12'h90
-//`define D_BAUD_LIMIT        16'h0ba5
+//`define D_BAUD_LIMIT        16'h0BA5
 // baud rate generator parameters for 115200 baud on 44MHz clock 
 // `define D_BAUD_FREQ          12'd23
 // `define D_BAUD_LIMIT     16'd527

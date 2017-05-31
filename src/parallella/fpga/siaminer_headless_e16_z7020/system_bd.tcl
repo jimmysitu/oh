@@ -191,13 +191,17 @@ proc create_root_design { parentCell } {
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
 
+  # Create instance: proc_sys_reset_1, and set properties
+  set proc_sys_reset_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_1 ]
+
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]
   set_property -dict [ list CONFIG.PCW_CORE0_FIQ_INTR {0} \
 CONFIG.PCW_ENET0_ENET0_IO {MIO 16 .. 27} CONFIG.PCW_ENET0_GRP_MDIO_ENABLE {1} \
 CONFIG.PCW_ENET0_PERIPHERAL_ENABLE {1} CONFIG.PCW_ENET1_PERIPHERAL_ENABLE {0} \
-CONFIG.PCW_EN_CLK1_PORT {1} CONFIG.PCW_EN_CLK3_PORT {0} \
-CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} CONFIG.PCW_FPGA3_PERIPHERAL_FREQMHZ {100} \
+CONFIG.PCW_EN_CLK1_PORT {0} CONFIG.PCW_EN_CLK3_PORT {1} \
+CONFIG.PCW_EN_RST1_PORT {0} CONFIG.PCW_EN_RST3_PORT {1} \
+CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100} CONFIG.PCW_FPGA3_PERIPHERAL_FREQMHZ {40} \
 CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1} CONFIG.PCW_GPIO_MIO_GPIO_ENABLE {1} \
 CONFIG.PCW_GPIO_MIO_GPIO_IO {MIO} CONFIG.PCW_I2C0_I2C0_IO {EMIO} \
 CONFIG.PCW_I2C0_PERIPHERAL_ENABLE {1} CONFIG.PCW_I2C0_RESET_ENABLE {0} \
@@ -205,21 +209,22 @@ CONFIG.PCW_IRQ_F2P_INTR {1} CONFIG.PCW_IRQ_F2P_MODE {DIRECT} \
 CONFIG.PCW_PRESET_BANK1_VOLTAGE {LVCMOS 1.8V} CONFIG.PCW_QSPI_GRP_SINGLE_SS_ENABLE {1} \
 CONFIG.PCW_QSPI_PERIPHERAL_ENABLE {1} CONFIG.PCW_SD1_PERIPHERAL_ENABLE {1} \
 CONFIG.PCW_SD1_SD1_IO {MIO 10 .. 15} CONFIG.PCW_SDIO_PERIPHERAL_FREQMHZ {50} \
-CONFIG.PCW_UART0_PERIPHERAL_ENABLE {1} CONFIG.PCW_UART1_PERIPHERAL_ENABLE {1} \
-CONFIG.PCW_UART1_UART1_IO {MIO 8 .. 9} CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY0 {0.434} \
-CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY1 {0.398} CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY2 {0.410} \
-CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY3 {0.455} CONFIG.PCW_UIPARAM_DDR_CL {9} \
-CONFIG.PCW_UIPARAM_DDR_CWL {9} CONFIG.PCW_UIPARAM_DDR_DEVICE_CAPACITY {8192 MBits} \
-CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 {0.315} CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 {0.391} \
-CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 {0.374} CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 {0.271} \
-CONFIG.PCW_UIPARAM_DDR_DRAM_WIDTH {32 Bits} CONFIG.PCW_UIPARAM_DDR_FREQ_MHZ {400.00} \
-CONFIG.PCW_UIPARAM_DDR_PARTNO {Custom} CONFIG.PCW_UIPARAM_DDR_T_FAW {50} \
-CONFIG.PCW_UIPARAM_DDR_T_RAS_MIN {40} CONFIG.PCW_UIPARAM_DDR_T_RC {60} \
-CONFIG.PCW_UIPARAM_DDR_T_RCD {9} CONFIG.PCW_UIPARAM_DDR_T_RP {9} \
-CONFIG.PCW_UIPARAM_DDR_USE_INTERNAL_VREF {1} CONFIG.PCW_USB0_PERIPHERAL_ENABLE {1} \
-CONFIG.PCW_USB0_RESET_ENABLE {0} CONFIG.PCW_USB1_PERIPHERAL_ENABLE {1} \
-CONFIG.PCW_USE_FABRIC_INTERRUPT {1} CONFIG.PCW_USE_M_AXI_GP1 {1} \
-CONFIG.PCW_USE_S_AXI_HP1 {1}  ] $processing_system7_0
+CONFIG.PCW_UART0_BAUD_RATE {9600} CONFIG.PCW_UART0_PERIPHERAL_ENABLE {1} \
+CONFIG.PCW_UART1_PERIPHERAL_ENABLE {1} CONFIG.PCW_UART1_UART1_IO {MIO 8 .. 9} \
+CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY0 {0.434} CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY1 {0.398} \
+CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY2 {0.410} CONFIG.PCW_UIPARAM_DDR_BOARD_DELAY3 {0.455} \
+CONFIG.PCW_UIPARAM_DDR_CL {9} CONFIG.PCW_UIPARAM_DDR_CWL {9} \
+CONFIG.PCW_UIPARAM_DDR_DEVICE_CAPACITY {8192 MBits} CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_0 {0.315} \
+CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_1 {0.391} CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_2 {0.374} \
+CONFIG.PCW_UIPARAM_DDR_DQS_TO_CLK_DELAY_3 {0.271} CONFIG.PCW_UIPARAM_DDR_DRAM_WIDTH {32 Bits} \
+CONFIG.PCW_UIPARAM_DDR_FREQ_MHZ {400.00} CONFIG.PCW_UIPARAM_DDR_PARTNO {Custom} \
+CONFIG.PCW_UIPARAM_DDR_T_FAW {50} CONFIG.PCW_UIPARAM_DDR_T_RAS_MIN {40} \
+CONFIG.PCW_UIPARAM_DDR_T_RC {60} CONFIG.PCW_UIPARAM_DDR_T_RCD {9} \
+CONFIG.PCW_UIPARAM_DDR_T_RP {9} CONFIG.PCW_UIPARAM_DDR_USE_INTERNAL_VREF {1} \
+CONFIG.PCW_USB0_PERIPHERAL_ENABLE {1} CONFIG.PCW_USB0_RESET_ENABLE {0} \
+CONFIG.PCW_USB1_PERIPHERAL_ENABLE {1} CONFIG.PCW_USE_FABRIC_INTERRUPT {1} \
+CONFIG.PCW_USE_M_AXI_GP1 {1} CONFIG.PCW_USE_S_AXI_HP1 {1} \
+ ] $processing_system7_0
 
   # Create instance: processing_system7_0_axi_periph, and set properties
   set processing_system7_0_axi_periph [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 processing_system7_0_axi_periph ]
@@ -263,9 +268,11 @@ CONFIG.PCW_USE_S_AXI_HP1 {1}  ] $processing_system7_0
   connect_bd_net -net parallella_base_0_txo_lclk_p [get_bd_ports txo_lclk_p] [get_bd_pins parallella_base_0/txo_lclk_p]
   connect_bd_net -net proc_sys_reset_0_interconnect_aresetn [get_bd_pins axi_mem_intercon/ARESETN] [get_bd_pins proc_sys_reset_0/interconnect_aresetn] [get_bd_pins processing_system7_0_axi_periph/ARESETN]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins axi_mem_intercon/M00_ARESETN] [get_bd_pins axi_mem_intercon/S00_ARESETN] [get_bd_pins parallella_base_0/m_axi_aresetn] [get_bd_pins parallella_base_0/s_axi_aresetn] [get_bd_pins parallella_base_0/sys_nreset] [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins processing_system7_0_axi_periph/M00_ARESETN] [get_bd_pins processing_system7_0_axi_periph/S00_ARESETN]
-  connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_pins siaminer_0/rst]
+  connect_bd_net -net proc_sys_reset_1_peripheral_reset [get_bd_pins proc_sys_reset_1/peripheral_reset] [get_bd_pins siaminer_0/rst]
   connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins axi_mem_intercon/ACLK] [get_bd_pins axi_mem_intercon/M00_ACLK] [get_bd_pins axi_mem_intercon/S00_ACLK] [get_bd_pins parallella_base_0/sys_clk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/M_AXI_GP1_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP1_ACLK] [get_bd_pins processing_system7_0_axi_periph/ACLK] [get_bd_pins processing_system7_0_axi_periph/M00_ACLK] [get_bd_pins processing_system7_0_axi_periph/S00_ACLK]
+  connect_bd_net -net processing_system7_0_FCLK_CLK3 [get_bd_pins proc_sys_reset_1/slowest_sync_clk] [get_bd_pins processing_system7_0/FCLK_CLK3] [get_bd_pins siaminer_0/clk]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET0_N]
+  connect_bd_net -net processing_system7_0_FCLK_RESET3_N [get_bd_pins proc_sys_reset_1/ext_reset_in] [get_bd_pins processing_system7_0/FCLK_RESET3_N]
   connect_bd_net -net processing_system7_0_GPIO_O [get_bd_pins parallella_base_0/ps_gpio_o] [get_bd_pins processing_system7_0/GPIO_O]
   connect_bd_net -net processing_system7_0_GPIO_T [get_bd_pins parallella_base_0/ps_gpio_t] [get_bd_pins processing_system7_0/GPIO_T]
   connect_bd_net -net processing_system7_0_I2C0_SCL_O [get_bd_pins parallella_base_0/i2c_scl_o] [get_bd_pins processing_system7_0/I2C0_SCL_O]
