@@ -19,19 +19,22 @@ input rst;
     // baud rate generator parameters for 115200 baud on 50MHz clock 
     `define D_BAUD_FREQ         12'h240
     `define D_BAUD_LIMIT        16'h3AC9
+//    // baud rate generator parameters for 115200 baud on 40MHz clock 
+//    `define D_BAUD_FREQ         12'h90
+//    `define D_BAUD_LIMIT        16'h0BA5
+//    // baud rate generator parameters for 115200 baud on 50MHz clock 
+//    `define D_BAUD_FREQ         12'h240
+//    `define D_BAUD_LIMIT        16'h3AC9
+//    // baud rate generator parameters for 115200 baud on 100MHz clock 
+//    `define D_BAUD_FREQ         12'h120
+//    `define D_BAUD_LIMIT        16'h3BE9
+//    // baud rate generator parameters for 115200 baud on 44MHz clock 
+//    `define D_BAUD_FREQ         12'd23
+//    `define D_BAUD_LIMIT        16'd527
+//    // baud rate generator parameters for 9600 baud on 66MHz clock 
+//    `define D_BAUD_FREQ         12'h10
+//    `define D_BAUD_LIMIT        16'h1ACB
 `endif
-// baud rate generator parameters for 115200 baud on 100MHz clock 
-//`define D_BAUD_FREQ         12'h120
-//`define D_BAUD_LIMIT        16'h3BE9
-// baud rate generator parameters for 115200 baud on 40MHz clock 
-//`define D_BAUD_FREQ         12'h90
-//`define D_BAUD_LIMIT        16'h0BA5
-// baud rate generator parameters for 115200 baud on 44MHz clock 
-// `define D_BAUD_FREQ          12'd23
-// `define D_BAUD_LIMIT     16'd527
-// baud rate generator parameters for 9600 baud on 66MHz clock 
-//`define D_BAUD_FREQ       12'h10
-//`define D_BAUD_LIMIT      16'h1ACB
 
 // internal wires 
 wire    [7:0]   tx_data;        // data byte to transmit 
