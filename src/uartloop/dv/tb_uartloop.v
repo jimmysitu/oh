@@ -1,10 +1,10 @@
 // vim: ft=verilog ts=4
 //
-// Test bench for siaminer verification
+// Test bench for uartloop verification
 //
 
 `timescale 1ns/1ns
-module tb_siaminer();
+module tb_uartloop();
 //---------------------------------------------------------------------------------------
 // include uart tasks 
 `include "uart_tasks.vh" 
@@ -16,7 +16,7 @@ integer wfon;
 `ifdef WF
     initial begin
         $dumpfile("waveform.fst");
-        $dumpvars(0, tb_siaminer);
+        $dumpvars(0, tb_uartloop);
         if(!$value$plusargs("wfon=%d", wfon)) begin
             wfon = 0;
         end else
@@ -57,10 +57,10 @@ integer wfon;
         forever #50 clk = ~clk;
     end
 `else
-    // 50MHz clk
+    // 40MHz clk
     initial begin
         clk = 1'b1;
-        forever #10 clk = ~clk;
+        forever #12.5 clk = ~clk;
     end
 `endif
 
@@ -79,7 +79,7 @@ integer wfon;
     always @(posedge clk) begin
         if(rst == 1'b1) begin
             work    <= 640'h0;
-            target  <= 64'h0;
+            target  <= 32'h0;
             golden  <= 32'h0;
             addr    <= 0;
         end else if(found) begin
@@ -163,64 +163,9 @@ integer wfon;
                 @(posedge clk);
         end
 
-        // ================ regression test ================
-        @(posedge clk);
-        while(addr < `VECTORS) begin
-            tx_cmd = {$random} % 2;
-            if(tx_cmd == 8'h0) begin
-                $display($time, " Sending work command");
-                $display($time, " Sending work in address 0x%d", addr);
-                tx_len = 8'd84;
-                tx_data = {target, work};
-                tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
-                $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
-            end else if(tx_cmd == 8'h1) begin
-                $display($time, " Sending loop test command");
-                tx_len = 8'h1;
-            end else begin
-                $display($time, " Unknown command: %d", tx_cmd);
-            end
-
-            // transmit command, header, cmd, len, data
-            send_serial(8'hAA, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
-            send_serial(tx_cmd, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
-            send_serial(tx_len, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
-            while (tx_len > 0) begin
-                if(tx_cmd == 8'h1) begin
-                    tx_byte = {$random};
-                    send_serial(tx_byte, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0);
-                    $display($time, " Loop_test: Loop Data: 0x%02X", tx_byte);
-                end else if(tx_cmd == 8'h0) begin
-                    tx_byte = tx_data[7:0];
-                    tx_data = tx_data >> 8;
-                    send_serial(tx_byte, `BAUD_115200, `PARITY_EVEN, `PARITY_OFF, `NSTOPS_1, `NBITS_8, 0); 
-                end
-                tx_len = tx_len - 1'b1;
-            end
-            $display($time, " Sent command");
-
-            // wait nonce found if work cmd is sent
-            if(tx_cmd == 8'h0) begin
-                while(~found)
-                    @(posedge clk);
-            end
-
-            @(posedge clk);
-            @(posedge clk);
-        end
-
         // delay and finish 
         $display($time, " All nonces are found, pass!");
         #500 $finish;
-    end
-    
-    // Force m04 near to nonce, since m04 in siacore always start all zeros in RTL
-    always @(/*AUTOSENSE*/) begin
-        if(tb_siaminer.DUT.uSiacore.uLoad.valid) begin
-            force tb_siaminer.DUT.uSiacore.uLoad.m04 = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
-        end else begin
-            release tb_siaminer.DUT.uSiacore.uLoad.m04;
-        end
     end
 
     // uart receive 
@@ -259,9 +204,9 @@ integer wfon;
                     rx_len = rx_len - 8'h1;
                 end
 
-                // check nonce
+                // check if nonce == target, which means loop test ack
                 if(rx_cmd == 8'h00) begin
-                    if(nonce == golden) begin
+                    if(nonce == target) begin
                         $display($time, " Found nonce: 0x%08X, golden: 0x%08X", nonce, golden);
                         // Next vector
                         @(posedge clk) found <= 1'b1;
@@ -294,40 +239,24 @@ integer wfon;
     always @(posedge clk) serial_in = ser_out;
 
     // DUT instance 
-    siaminer DUT(/*AUTOINST*/);
+    uartloop DUT(
+        .work(),
+        /*AUTOINST*/);
 
     // internal status monitors
     always @(negedge clk) begin
-        if(tb_siaminer.DUT.uSiacore.uLoad.valid) begin
-            $display("Siacore get new work:");
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[  63:    0]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 127:   64]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 191:  128]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 255:  192]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 319:  256]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 383:  320]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 447:  384]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 511:  448]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 575:  512]);
-            $display("0x%016X", tb_siaminer.DUT.uSiacore.uLoad.work[ 639:  576]);
-            $display("Siacore get new target:");
-            $display("0x%08X", tb_siaminer.DUT.uSiacore.uCompare.target);
-        end
-    end
-    
-    always @(negedge clk) begin
-        if(tb_siaminer.DUT.uUart2core.new_rx_data) begin
+        if(tb_uartloop.DUT.uUart2core.new_rx_data) begin
             $display($time, " DUT got new byte");
         end
-        if(tb_siaminer.DUT.uUart2core.new_tx_data) begin
+        if(tb_uartloop.DUT.uUart2core.new_tx_data) begin
             $display($time, " DUT sent new byte");
         end
-        if(tb_siaminer.DUT.uUart2core.uParser.rx_last_byte 
-            && tb_siaminer.DUT.uUart2core.uParser.new_rx_data) begin
+        if(tb_uartloop.DUT.uUart2core.uParser.rx_last_byte 
+            && tb_uartloop.DUT.uUart2core.uParser.new_rx_data) begin
             $display($time, " DUT got a new command");
         end
-        if(tb_siaminer.DUT.uUart2core.uParser.tx_last_byte
-            && tb_siaminer.DUT.uUart2core.uParser.new_tx_data) begin
+        if(tb_uartloop.DUT.uUart2core.uParser.tx_last_byte
+            && tb_uartloop.DUT.uUart2core.uParser.new_tx_data) begin
             $display($time, " DUT sent new command");
         end
     end
