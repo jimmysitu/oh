@@ -15,25 +15,42 @@ input rst;
     // baud rate generator parameters for 115200 baud on 10MHz clock 
     `define D_BAUD_FREQ         12'h240
     `define D_BAUD_LIMIT        16'h09F5
-`else
-//    // baud rate generator parameters for 115200 baud on 50MHz clock 
-//    `define D_BAUD_FREQ         12'h240
-//    `define D_BAUD_LIMIT        16'h3AC9
+`elsif CLK20M
+    // baud rate generator parameters for 115200 baud on 20MHz clock 
+    `define D_BAUD_FREQ         12'h120
+    `define D_BAUD_LIMIT        16'hB15
+`elsif CLK25M
+    // baud rate generator parameters for 115200 baud on 25MHz clock 
+    `define D_BAUD_FREQ         12'h480
+    `define D_BAUD_LIMIT        16'h3889
+`elsif CLK30M
+    // baud rate generator parameters for 115200 baud on 30MHz clock 
+    `define D_BAUD_FREQ         12'hC0
+    `define D_BAUD_LIMIT        16'hB75
+`elsif CLK33M
+    // baud rate generator parameters for 115200 baud on 33MHz clock 
+    `define D_BAUD_FREQ         12'h180
+    `define D_BAUD_LIMIT        16'h195B
+`elsif CLK35M
+    // baud rate generator parameters for 115200 baud on 35MHz clock 
+    `define D_BAUD_FREQ         12'h480
+    `define D_BAUD_LIMIT        16'h50F3
+`elsif CLK40M
     // baud rate generator parameters for 115200 baud on 40MHz clock 
     `define D_BAUD_FREQ         12'h90
-    `define D_BAUD_LIMIT        16'h0BA5
-//    // baud rate generator parameters for 115200 baud on 50MHz clock 
-//    `define D_BAUD_FREQ         12'h240
-//    `define D_BAUD_LIMIT        16'h3AC9
-//    // baud rate generator parameters for 115200 baud on 100MHz clock 
-//    `define D_BAUD_FREQ         12'h120
-//    `define D_BAUD_LIMIT        16'h3BE9
-//    // baud rate generator parameters for 115200 baud on 44MHz clock 
-//    `define D_BAUD_FREQ         12'd23
-//    `define D_BAUD_LIMIT        16'd527
-//    // baud rate generator parameters for 9600 baud on 66MHz clock 
-//    `define D_BAUD_FREQ         12'h10
-//    `define D_BAUD_LIMIT        16'h1ACB
+    `define D_BAUD_LIMIT        16'hBA5
+`elsif CLK50M
+    // baud rate generator parameters for 115200 baud on 50MHz clock 
+    `define D_BAUD_FREQ         12'h240
+    `define D_BAUD_LIMIT        16'h3AC9
+`elsif CLK100M
+    // baud rate generator parameters for 115200 baud on 100MHz clock 
+    `define D_BAUD_FREQ         12'h120
+    `define D_BAUD_LIMIT        16'h3BE9
+`else
+    // baud rate generator parameters for 115200 baud on 10MHz clock 
+    `define D_BAUD_FREQ         12'h240
+    `define D_BAUD_LIMIT        16'h09F5
 `endif
 
 // internal wires 

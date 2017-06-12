@@ -5,10 +5,10 @@ HDL  = ${PWD}/../hdl
 TV2V = ${BIN}/tv2v.py
 WAVE ?= NONE
 WFON ?= 0
-
+FREQ ?= CLK20M
 
 real_miner: hdl dv
-	cd build;iverilog -D${WAVE} -DVECTORS=3 -s tb_siaminer -o tb_siaminer.vvp *.v
+	cd build;iverilog -D${WAVE} -D${FREQ} -DVECTORS=3 -s tb_siaminer -o tb_siaminer.vvp *.v
 
 miner: hdl dv
 	cd build;iverilog -D${WAVE} -DFAST_SIM -DVECTORS=3 -s tb_siaminer -o tb_siaminer.vvp *.v

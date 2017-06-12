@@ -9,6 +9,5 @@ source ../../../common/fpga/system_init.tcl
 ##...
 set_property verilog_define [list [get_property verilog_define [current_fileset]] CLK20M] [current_fileset]
 
-
 #STEP 4: SYNTEHSIZE AND CREATE BITSTRAM
 source ../../../common/fpga/system_build.tcl
