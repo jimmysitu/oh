@@ -33,7 +33,7 @@ module spi #( parameter AW     = 32,    // address width
     input 	    s_ss, // slave select
     output 	    s_miso    // slave output
     );
-
+   
    //###############
    //# LOCAL WIRES
    //###############

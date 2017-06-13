@@ -56,11 +56,45 @@ integer wfon;
         clk = 1'b1;
         forever #50 clk = ~clk;
     end
-`else
-    // 50MHz clk
+`elsif CLK20M
+    initial begin
+        clk = 1'b1;
+        forever #25 clk = ~clk;
+    end
+`elsif CLK30M
+    initial begin
+        clk = 1'b1;
+        forever #16 clk = ~clk;
+    end
+`elsif CLK33M
+    initial begin
+        clk = 1'b1;
+        forever #15 clk = ~clk;
+    end
+`elsif CLK35M
+    initial begin
+        clk = 1'b1;
+        forever #14.25 clk = ~clk;
+    end
+`elsif CLK40M
+    initial begin
+        clk = 1'b1;
+        forever #12.5 clk = ~clk;
+    end
+`elsif CLK50M
     initial begin
         clk = 1'b1;
         forever #10 clk = ~clk;
+    end
+`elsif CLK100M
+    initial begin
+        clk = 1'b1;
+        forever #5 clk = ~clk;
+    end
+`else
+    initial begin
+        clk = 1'b1;
+        forever #5 clk = ~clk;
     end
 `endif
 
@@ -213,7 +247,8 @@ integer wfon;
         $display($time, " All nonces are found, pass!");
         #500 $finish;
     end
-
+    
+    // Force m04 near to nonce, since m04 in siacore always start all zeros in RTL
     always @(/*AUTOSENSE*/) begin
         if(tb_siaminer.DUT.uSiacore.uLoad.valid) begin
             force tb_siaminer.DUT.uSiacore.uLoad.m04 = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);

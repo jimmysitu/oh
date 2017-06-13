@@ -25,17 +25,17 @@ input   [31:0]    nonce;    // nonce of current hash
 
 // internal constants 
 // receive state machine states 
-`define RX_IDLE     4'b0000
+`define RX_IDL     4'b0000
 `define RX_CMD	    4'b0001
 `define RX_LEN      4'b0010
-`define RX_DATA     4'b0011
+`define RX_DAT     4'b0011
 
 // transmit state machine 
-`define TX_IDLE		4'b0000
+`define TX_IDL		4'b0000
 `define TX_HDR		4'b0001
 `define TX_CMD      4'b0010
 `define TX_LEN      4'b0011
-`define TX_DATA     4'b0100
+`define TX_DAT     4'b0100
 
 // command is indicated by command byte 
 `define CMD_WORK		8'h00
@@ -71,34 +71,34 @@ reg [31:0] s_nonce;         // sampled nonce
 // rx state machine
 always @ (posedge clock or posedge reset) begin
 	if (reset)
-		rx_sm <= `RX_IDLE;
+		rx_sm <= `RX_IDL;
 	else if (new_rx_data) begin
 		case (rx_sm)
-			`RX_IDLE:
+			`RX_IDL:
 				// check if received character is header
 				if (rx_data == 8'hAA)
 					// an all zeros received byte enters binary mode
 					rx_sm <= `RX_CMD;
 				else
 					// any other character wait to downstream header)
-					rx_sm <= `RX_IDLE;
+					rx_sm <= `RX_IDL;
 			`RX_CMD:
 				// check if command is a known command
 				if ((rx_data == `CMD_WORK) || (rx_data == `CMD_LOOP_TEST))
 					rx_sm <= `RX_LEN;
 				else
 					// not a known command, continue receiving parameters
-					rx_sm <= `RX_IDLE;
+					rx_sm <= `RX_IDL;
 			`RX_LEN:
 			        // wait for length parameter - one byte
-					rx_sm <= `RX_DATA;
-			`RX_DATA:
+					rx_sm <= `RX_DAT;
+			`RX_DAT:
 				// if this is the last data byte then return to idle
 				if (rx_last_byte)
-					rx_sm <= `RX_IDLE;
+					rx_sm <= `RX_IDL;
 			default:
 			    // go to idle
-				rx_sm <= `RX_IDLE;
+				rx_sm <= `RX_IDL;
 		endcase
 	end
 end
@@ -119,7 +119,7 @@ end
 always @ (posedge clock or posedge reset) begin
 	if (reset)
 		{target, work} <= 672'h0;
-	else if ((rx_sm == `RX_DATA) && (rx_cmd == `CMD_WORK) && new_rx_data)
+	else if ((rx_sm == `RX_DAT) && (rx_cmd == `CMD_WORK) && new_rx_data)
         {target, work} <= {rx_data, target[31:0], work[639:8]};
 end
 
@@ -128,10 +128,10 @@ always @ (posedge clock or posedge reset) begin
     if (reset) begin
         loop_test <= 1'b0;
         loop_data <= 8'h0;
-    end else if ((rx_sm == `RX_IDLE)) begin
+    end else if ((rx_sm == `RX_IDL)) begin
         loop_test <= 1'b0;
         loop_data <= loop_data;
-    end else if ((rx_sm == `RX_DATA) && (rx_cmd == `CMD_LOOP_TEST) && new_rx_data) begin
+    end else if ((rx_sm == `RX_DAT) && (rx_cmd == `CMD_LOOP_TEST) && new_rx_data) begin
         loop_test <= 1'b1;
         loop_data <= rx_data;
     end
@@ -144,7 +144,7 @@ always @ (posedge clock or posedge reset) begin
 		rx_byte_count <= 8'b0;
 	else if ((rx_sm == `RX_LEN) && new_rx_data)
 		rx_byte_count <= rx_data;
-	else if ((rx_sm == `RX_DATA) && new_rx_data)
+	else if ((rx_sm == `RX_DAT) && new_rx_data)
 		rx_byte_count <= rx_byte_count - 8'h1;
 end
 
@@ -163,10 +163,10 @@ end
 // transmit state machine
 always @ (posedge clock or posedge reset) begin
 	if (reset) begin
-		tx_sm <= `TX_IDLE;
+		tx_sm <= `TX_IDL;
     end else begin
 		case (tx_sm)
-			`TX_IDLE:
+			`TX_IDL:
 				if (found || loop_test)
 					tx_sm <= `TX_HDR;
 			`TX_HDR:
@@ -177,12 +177,12 @@ always @ (posedge clock or posedge reset) begin
 					tx_sm <= `TX_LEN;
 			`TX_LEN:
 				if (tx_end_p)
-					tx_sm <= `TX_DATA;
-			`TX_DATA:
+					tx_sm <= `TX_DAT;
+			`TX_DAT:
 				if (tx_last_byte && tx_end_p)
-					tx_sm <= `TX_IDLE;
+					tx_sm <= `TX_IDL;
 			default:
-				tx_sm <= `TX_IDLE;
+				tx_sm <= `TX_IDL;
         endcase
     end
 end
@@ -193,7 +193,7 @@ always @ (posedge clock or posedge reset) begin
         s_nonce <= 8'h00;
     else if(found)
         s_nonce <= nonce;
-    else if((tx_sm == `TX_DATA) && (tx_cmd == `CMD_FOUND) && tx_end_p)
+    else if((tx_sm == `TX_DAT) && (tx_cmd == `CMD_FOUND) && tx_end_p)
         s_nonce <= {s_nonce[7:0], s_nonce[31:8]};
 end
 
@@ -226,7 +226,7 @@ always @ (posedge clock or posedge reset) begin
 		tx_byte_count <= 8'h4;
 	else if ((tx_sm == `TX_LEN) && (tx_cmd == `CMD_LOOP_ACK))
 		tx_byte_count <= 8'h1;
-	else if ((tx_sm == `TX_DATA) && tx_end_p)
+	else if ((tx_sm == `TX_DAT) && tx_end_p)
 		tx_byte_count <= tx_byte_count - 8'h1;
 end
 
@@ -247,10 +247,10 @@ always @ (posedge clock or posedge reset) begin
     end else if((tx_sm == `TX_LEN) && tx_end_p) begin
         tx_data <= tx_byte_count;
         new_tx_data <= 1'b1;
-    end else if((tx_sm == `TX_DATA) && (tx_cmd == `CMD_FOUND) && tx_end_p) begin
+    end else if((tx_sm == `TX_DAT) && (tx_cmd == `CMD_FOUND) && tx_end_p) begin
         tx_data <= s_nonce[7:0];
         new_tx_data <= 1'b1;
-    end else if((tx_sm == `TX_DATA) && (tx_cmd == `CMD_LOOP_ACK) && tx_end_p) begin
+    end else if((tx_sm == `TX_DAT) && (tx_cmd == `CMD_LOOP_ACK) && tx_end_p) begin
         tx_data <= loop_data + 8'h1;
         new_tx_data <= 1'b1;
     end else begin
