@@ -79,7 +79,7 @@ integer wfon;
     always @(posedge clk) begin
         if(rst == 1'b1) begin
             work    <= 640'h0;
-            target  <= 32'h0;
+            target  <= 64'h0;
             golden  <= 32'h0;
             addr    <= 0;
         end else if(found) begin
@@ -140,7 +140,7 @@ integer wfon;
         tx_cmd = 8'h0;
         tx_len = 8'h1;
         tx_len = 8'd84;
-        tx_data = {target, work};
+        tx_data = {target[31:0], work};
         tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
         $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
 
@@ -171,7 +171,7 @@ integer wfon;
                 $display($time, " Sending work command");
                 $display($time, " Sending work in address 0x%d", addr);
                 tx_len = 8'd84;
-                tx_data = {target, work};
+                tx_data = {target[31:0], work};
                 tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
                 $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
             end else if(tx_cmd == 8'h1) begin
