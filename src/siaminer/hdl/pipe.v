@@ -2,6 +2,7 @@ module pipe(/*AUTOARG*/);
     input clk;
     input rst;
     input found;
+    input valid;
 
     input vldIn;
     input   [63:0]    m04In;
@@ -15,8 +16,8 @@ module pipe(/*AUTOARG*/);
         if(rst) begin
             vldOut <= 1'b0;
             m04Out <= 64'b0;
-        end else if(found) begin
-            // clean pipeline when nonce found
+        end else if(found | valid) begin
+            // clean pipeline when nonce found or new work valid
             vldOut <= 1'b0;
             m04Out <= 64'b0;
         end else begin
