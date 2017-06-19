@@ -85,18 +85,43 @@ void main(){
 //        0xAE8FBD793A2C3DFF,
 //        0xE285A7BB9EACC0A5
 //    };
-    uint64_t data[10] = {     
-        0x6700000000000000,
-        0x3028D5CA67B9942D,
-        0xDD91ED77874AA43D,
-        0x9ECA6F89EBFB0757,
-        0x0000000000000000,
-        0x0000000059464FEB,
-        0x0876615695C2ECE4,
-        0x3EDE65872D9E0DF8,
-        0x4FED38A8BB4EAE9A,
-        0x5F7DBA2663ED80D8
+    uint64_t data[3][10] = {
+        {
+            0x1400000000000000,
+            0xF1B9293F98C707A1,
+            0x5E2B51347B3A22C2,
+            0x3EE4BE13A9EA7BA5,
+            0x0000000000000000,
+            0x0000000059468AB0,
+            0x25C1B405F6900E2C,
+            0x534A5B20279C2B44,
+            0xAF5F4C366197B471,
+            0xC18A8649991E3F7D
+        },{
+            0x1400000000000000,
+            0xF1B9293F98C707A1,
+            0x5E2B51347B3A22C2,
+            0x3EE4BE13A9EA7BA5,
+            0x0000000000000000,
+            0x0000000059468AD1,
+            0xBD4147A948D78F59,
+            0x2FF67A1916DA81EF,
+            0xB3C426E39A978F87,
+            0xCF0C3FBFCF973AE5
+        },{
+            0x5D02000000000000,
+            0x4C1530E8862513E8,
+            0x474B940BBABEEEEF,
+            0x6EA321EB235C2AE9,
+            0x0000000000000000,
+            0x00000000584AB401,
+            0x3E1D8DBFA05F73E8,
+            0xFD53C016085D46B4,
+            0xAE8FBD793A2C3DFF,
+            0xE285A7BB9EACC0A5
+        }
     };
+    
     
     uint32_t golden_nonce = 0x881C0A02;
     uint32_t target[1] = {0xFFFFFFFF};
@@ -104,7 +129,7 @@ void main(){
     // send work (data and target) to tty device
     uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
     write(*dev, header, 3);
-    write(*dev, data, 80);
+    write(*dev, &data[0], 80);
     write(*dev, target, 4);
     
     uint32_t last_nonce;
@@ -125,6 +150,14 @@ void main(){
         }else{
             printf("[TTY] tty device read %d btyes, error\n", rd);
             cnt++;
+        }
+        
+        // Try to refresh work, and check
+        if(0 == (cnt % 7)){
+            write(*dev, header, 3);
+            write(*dev, &data[cnt % 3], 80);
+            write(*dev, target, 4);
+            printf("[TTY] Refresh with new work %d\n", cnt % 3);
         }
     }
 

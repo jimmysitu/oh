@@ -30,17 +30,20 @@ rstStr = ""
 vldStr = ""
 comStr = ""
 for i in range(0, 16):
-    rstStr += "\t\t\tm%02d <= 64'h0;" % i
     if i == 15:
+        rstStr += "\t\t\tm%02d <= 64'h0;" % i
         vldStr += "\t\t\tm%02d <= 64'h0;" % i
         comStr += "\t\t\tm%02d <= m%02d;" % (i, i)
     elif i == 4:
+        rstStr += "\t\t\tm%02d <= 64'h0;\n" % i
         vldStr += "\t\t\tm%02d <= 64'h0;\n" % i
         comStr += "\t\t\tm%02d <= m%02d + 64'h1;\n" % (i, i)
     elif i > 9:
+        rstStr += "\t\t\tm%02d <= 64'h0;\n" % i
         vldStr += "\t\t\tm%02d <= 64'h0;\n" % i
         comStr += "\t\t\tm%02d <= m%02d;\n" % (i, i)
     else:
+        rstStr += "\t\t\tm%02d <= 64'h0;\n" % i
         vldStr += "\t\t\tm%02d <= work[%4d: %4d];\n" % (i, (64*(i+1)-1), (64*i))
         comStr += "\t\t\tm%02d <= m%02d;\n" % (i, i)
 %>
