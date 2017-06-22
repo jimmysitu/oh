@@ -173,7 +173,7 @@ integer wfon;
         $display($time, " Sending work in address 0x%d", addr);
         tx_cmd = 8'h0;
         tx_len = 8'h1;
-        tx_len = 8'd84;
+        tx_len = 8'd88;
         tx_data = {target[31:0], work};
         tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
         $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
@@ -204,8 +204,8 @@ integer wfon;
             if(tx_cmd == 8'h0) begin
                 $display($time, " Sending work command");
                 $display($time, " Sending work in address 0x%d", addr);
-                tx_len = 8'd84;
-                tx_data = {target[31:0], work};
+                tx_len = 8'd88;
+                tx_data = {target[63:0], work};
                 tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
                 $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
             end else if(tx_cmd == 8'h1) begin

@@ -55,7 +55,7 @@ integer wfon;
     initial begin
         // wait for rst to de-assert 
         work    = 640'h0;
-        target  = 32'h0;
+        target  = 64'h0;
         golden  = 32'h0;
         valid   = 1'b0;
         addr    = 0;

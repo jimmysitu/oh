@@ -2,6 +2,7 @@
 #include <termios.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define BAUDRATE B115200
@@ -85,8 +86,19 @@ void main(){
 //        0xAE8FBD793A2C3DFF,
 //        0xE285A7BB9EACC0A5
 //    };
-    uint64_t data[3][10] = {
+    uint64_t data[4][10] = {
         {
+            0x5D02000000000000,
+            0x4C1530E8862513E8,
+            0x474B940BBABEEEEF,
+            0x6EA321EB235C2AE9,
+            0x0000000000000000,
+            0x00000000584AB401,
+            0x3E1D8DBFA05F73E8,
+            0xFD53C016085D46B4,
+            0xAE8FBD793A2C3DFF,
+            0xE285A7BB9EACC0A5
+        },{
             0x1400000000000000,
             0xF1B9293F98C707A1,
             0x5E2B51347B3A22C2,
@@ -109,16 +121,16 @@ void main(){
             0xB3C426E39A978F87,
             0xCF0C3FBFCF973AE5
         },{
-            0x5D02000000000000,
-            0x4C1530E8862513E8,
-            0x474B940BBABEEEEF,
-            0x6EA321EB235C2AE9,
+            0x4100000000000000,
+            0xE6559881A7B48FBB,
+            0xAF8E560A17FE9319,
+            0x162ACE8CF479E2E4,
             0x0000000000000000,
-            0x00000000584AB401,
-            0x3E1D8DBFA05F73E8,
-            0xFD53C016085D46B4,
-            0xAE8FBD793A2C3DFF,
-            0xE285A7BB9EACC0A5
+            0x0000000059464D4D,
+            0xA9EDFB15CA9A0A2A,
+            0x3124911C378DA630,
+            0x131EB37969C82AF9,
+            0x9496BDB12223807B
         }
     };
     
@@ -129,7 +141,7 @@ void main(){
     // send work (data and target) to tty device
     uint8_t header[3] = {0xAA, 0x00, 0x54};  // Send work command header
     write(*dev, header, 3);
-    write(*dev, &data[0], 80);
+    write(*dev, &data[1], 80);
     write(*dev, target, 4);
     
     uint32_t last_nonce;
@@ -152,16 +164,37 @@ void main(){
             cnt++;
         }
         
-        // Try to refresh work, and check
-        if(0 == (cnt % 7)){
+        if(0 == (cnt % 10)){
+            // Try to refresh work, and check
+            int idx = rand() % 3 + 1;
             write(*dev, header, 3);
-            write(*dev, &data[cnt % 3], 80);
+            write(*dev, &data[idx], 80);
             write(*dev, target, 4);
-            printf("[TTY] Refresh with new work %d\n", cnt % 3);
+            printf("[TTY] Refresh with new work %d\n", idx);
         }
     }
-
-
+        
+    write(*dev, header, 3);
+    write(*dev, &data[0], 80);
+    write(*dev, target, 4);
+    printf("[TTY] Refresh with new work %d\n", 0);
+   
+    cnt = 0;
+    while(cnt < 10){
+        int rd = read(*dev, msg, 7);
+        if(7 == rd){
+            last_nonce = *((uint32_t*)&msg[3]);
+            printf("[TTY] tty device found something, nonce: 0x%08x\n", last_nonce);
+            printf("[TTY] golden nonce: 0x%08x\n", golden_nonce);
+            break;
+        }else if(0 == rd){
+            printf("[TTY] tty device read %d btyes, waiting %d\n", rd, cnt);
+            cnt++;
+        }else{
+            printf("[TTY] tty device read %d btyes, error\n", rd);
+            cnt++;
+        }
+    }
 
     // Close tty device
     close(*dev);

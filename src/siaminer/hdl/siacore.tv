@@ -6,7 +6,7 @@ module siacore(/*AUTOARG*/);
     input   rst;
     input             valid;    // new work is valid
     input   [639:0]   work;     // 80B work data
-    input   [31:0]    target;   // hash target
+    input   [63:0]    target;   // hash target
 
     output            busy;     // busy with hashing
     output            found;    // found hash < target
@@ -45,7 +45,6 @@ ${wStr}
             .v0(a_11_09[63:0]),
             .v8(c_11_13[63:0]),
             .valid(vld_24),
-		    .target({32'h0, target[31:0]}),
             /*AUTOINST*/);
 
 

@@ -18,7 +18,7 @@ input 			new_rx_data;	// signs that a new byte was received
 
 output            valid;    // new work is valid
 output  [639:0]   work;     // 80B work data
-output  [31:0]    target;   // hash target
+output  [63:0]    target;   // hash target
 
 input             found;    // found hash < target
 input   [31:0]    nonce;    // nonce of current hash
@@ -26,15 +26,15 @@ input   [31:0]    nonce;    // nonce of current hash
 // internal constants 
 // receive state machine states 
 `define RX_IDL     4'b0000
-`define RX_CMD	    4'b0001
-`define RX_LEN      4'b0010
+`define RX_CMD	   4'b0001
+`define RX_LEN     4'b0010
 `define RX_DAT     4'b0011
 
 // transmit state machine 
-`define TX_IDL		4'b0000
-`define TX_HDR		4'b0001
-`define TX_CMD      4'b0010
-`define TX_LEN      4'b0011
+`define TX_IDL	   4'b0000
+`define TX_HDR	   4'b0001
+`define TX_CMD     4'b0010
+`define TX_LEN     4'b0011
 `define TX_DAT     4'b0100
 
 // command is indicated by command byte 
@@ -118,9 +118,9 @@ end
 // target and work
 always @ (posedge clock or posedge reset) begin
 	if (reset)
-		{target, work} <= 672'h0;
+		{target, work} <= 704'h0;
 	else if ((rx_sm == `RX_DAT) && (rx_cmd == `CMD_WORK) && new_rx_data)
-        {target, work} <= {rx_data, target[31:0], work[639:8]};
+        {target, work} <= {rx_data, target[63:0], work[639:8]};
 end
 
 // loop test
