@@ -248,14 +248,14 @@ integer wfon;
         #500 $finish;
     end
     
-    // Force m04 near to nonce, since m04 in siacore always start all zeros in RTL
-    always @(/*AUTOSENSE*/) begin
-        if(tb_siaminer.DUT.uSiacore.uLoad.valid) begin
-            force tb_siaminer.DUT.uSiacore.uLoad.m04 = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
-        end else begin
-            release tb_siaminer.DUT.uSiacore.uLoad.m04;
-        end
-    end
+//    // Force m04 near to nonce, since m04 in siacore always start all zeros in RTL
+//    always @(/*AUTOSENSE*/) begin
+//        if(tb_siaminer.DUT.uSiacore.uLoad.valid) begin
+//            force tb_siaminer.DUT.uSiacore.uLoad.m04 = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
+//        end else begin
+//            release tb_siaminer.DUT.uSiacore.uLoad.m04;
+//        end
+//    end
 
     // uart receive 
     initial begin 
