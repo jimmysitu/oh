@@ -76,6 +76,7 @@ integer wfon;
             work    = workData[addr];
             target  = targetData[addr];
             golden  = goldenData[addr];
+            work[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
             valid   = 1'b1;
             addr    = addr + 1;
 
@@ -91,15 +92,15 @@ integer wfon;
         $finish;
     end
 
-    // Force initial nonce just a little smaller than golen
-    always @(/*AUTOSENSE*/) begin
-        if(valid == 1'b1) begin
-            //force tb_siacore.DUT.uLoad.m04 = golden - $random % 10;
-            force tb_siacore.DUT.uLoad.m04 = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ($random % 10);
-        end else begin
-            release tb_siacore.DUT.uLoad.m04;
-        end
-    end
+//    // Force initial nonce just a little smaller than golen
+//    always @(/*AUTOSENSE*/) begin
+//        if(valid == 1'b1) begin
+//            //force tb_siacore.DUT.uLoad.m04 = golden - $random % 10;
+//            force tb_siacore.DUT.uLoad.m04 = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ($random % 10);
+//        end else begin
+//            release tb_siacore.DUT.uLoad.m04;
+//        end
+//    end
 
     siacore DUT(/*AUTOINST*/);
 

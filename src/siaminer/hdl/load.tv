@@ -1,4 +1,4 @@
-// vim:ft=verilog ts=4
+// vim: ft=verilog ts=4
 module load(/*AUTOARG*/);
     input   clk;
     input   rst;
@@ -36,7 +36,7 @@ for i in range(0, 16):
         comStr += "\t\t\tm%02d <= m%02d;" % (i, i)
     elif i == 4:
         rstStr += "\t\t\tm%02d <= 64'h0;\n" % i
-        vldStr += "\t\t\tm%02d <= 64'h0;\n" % i
+        vldStr += "\t\t\tm%02d <= work[%4d: %4d];\n" % (i, (64*(i+1)-1), (64*i))
         comStr += "\t\t\tm%02d <= m%02d + 64'h1;\n" % (i, i)
     elif i > 9:
         rstStr += "\t\t\tm%02d <= 64'h0;\n" % i

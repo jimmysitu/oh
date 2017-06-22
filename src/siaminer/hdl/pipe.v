@@ -19,7 +19,7 @@ module pipe(/*AUTOARG*/);
         end else if(found | valid) begin
             // clean pipeline when nonce found or new work valid
             vldOut <= 1'b0;
-            m04Out <= 64'b0;
+            m04Out <= m04In;
         end else begin
             vldOut <= vldIn;
             m04Out <= m04In;
