@@ -24,7 +24,7 @@ module compare(/*AUTOARG*/);
     always @(posedge clk or posedge rst) begin
         if(rst) begin
             found <= 1'b0;
-        end else if(swap8 < target) begin
+        end else if(valid & (swap8 < target)) begin
             found <= 1'b1;
         end else begin
             found <= 1'b0;

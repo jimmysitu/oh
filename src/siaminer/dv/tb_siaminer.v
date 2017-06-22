@@ -135,7 +135,7 @@ integer wfon;
     // uart transmit
     reg [7:0] tx_cmd;
     reg [7:0] tx_len;
-    reg [671:0] tx_data;
+    reg [703:0] tx_data;
     reg [7:0] tx_byte;
 
     reg [7:0] rx_cmd;
@@ -174,7 +174,7 @@ integer wfon;
         tx_cmd = 8'h0;
         tx_len = 8'h1;
         tx_len = 8'd88;
-        tx_data = {target[31:0], work};
+        tx_data = {target[63:0], work};
         tx_data[287:256] = {golden[7:0], golden[15:8], golden[23:16], golden[31:24]} - ({$random} % 10);
         $display($time, " Adjust nonce to 0x%08x", tx_data[287:256]);
 
