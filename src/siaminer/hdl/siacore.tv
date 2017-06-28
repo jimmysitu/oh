@@ -31,13 +31,13 @@ for r in range(0, 12):
 %>
 ${wStr}
 
-    wire loadBusy;
+    wire vld;
 
     load uLoad(
-        .busy(loadBusy),
+        .busy(vld),
         /*AUTOINST*/);
 
-    wire        vld_00 = loadBusy;
+    wire        vld_00 = vld;
     wire [63:0] m04_00 = m04[63:0];
 
     compare uCompare(
@@ -45,7 +45,7 @@ ${wStr}
             .v0(a_11_09[63:0]),
             .v8(c_11_13[63:0]),
             .target({24'h0, target[39:0]}),
-            .valid(vld_24),
+            .vld(vld_24),
             /*AUTOINST*/);
 
 
