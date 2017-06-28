@@ -44,6 +44,7 @@ ${wStr}
             .m04(m04_24),
             .v0(a_11_09[63:0]),
             .v8(c_11_13[63:0]),
+            .target({24'h0, target[39:0]}),
             .valid(vld_24),
             /*AUTOINST*/);
 
@@ -149,7 +150,7 @@ sigma = [
     % if 3 == (i % 4):
 
     pipe Upipe_${"%02d" % r}_${"%02d" % i}(
-        .clk(clk), .rst(rst), .found(found), .valid(valid),
+        .clk(clk), .rst(rst), .valid(valid),
         .m04In(m04_${"%02d" % (r*2+i//4)}), .m04Out(m04_${"%02d" % (r*2+1+i//4)}),
         .vldIn(vld_${"%02d" % (r*2+i//4)}), .vldOut(vld_${"%02d" % (r*2+1+i//4)})
     );

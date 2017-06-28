@@ -16,8 +16,8 @@ module load(/*AUTOARG*/);
     always @(posedge clk or posedge rst) begin
         if(rst) begin
             busy <= 1'b0;
-        end else if(found) begin
-            busy <= 1'b0;
+//        end else if(found) begin
+//            busy <= 1'b0;
         end else if(valid) begin
             busy <= 1'b1;
         end else begin

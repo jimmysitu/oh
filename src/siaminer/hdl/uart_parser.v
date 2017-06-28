@@ -20,6 +20,7 @@ output            valid;    // new work is valid
 output  [639:0]   work;     // 80B work data
 output  [63:0]    target;   // hash target
 
+input             busy;     // busy = 1, means found is valid
 input             found;    // found hash < target
 input   [31:0]    nonce;    // nonce of current hash
 
