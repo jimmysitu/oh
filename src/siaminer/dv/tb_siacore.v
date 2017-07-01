@@ -113,10 +113,11 @@ integer wfon;
     // Check nonce if found
     always @(negedge clk) begin
         if(found) begin
-            $display("Found nonce: 0x%08X, golden: 0x%08X", nonce, golden);
             if(nonce != golden) begin
-                $display("Nonce: 0x%08X != Golden: 0x%08X, fail!", nonce, golden);
+                $display("Found nonce: 0x%08X, Golden: 0x%08X ========================= fail!", nonce, golden);
                 #50 $finish;
+            end else begin
+                $display("Found nonce: 0x%08X, golden: 0x%08X ========================= pass!", nonce, golden);
             end
         end
     end

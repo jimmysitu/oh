@@ -37,7 +37,9 @@ module compare(/*AUTOARG*/);
     always @(posedge clk or posedge rst) begin
         if(rst) begin
             found <= 1'b0;
-        end else if(vld & (swap8 < difficulty)) begin
+        //end else if(vld & (swap8 < difficulty)) begin
+        //end else if(swap8 < difficulty) begin
+        end else if(swap8 < target) begin
             found <= 1'b1;
         end else begin
             found <= 1'b0;
@@ -58,7 +60,7 @@ module compare(/*AUTOARG*/);
         if(rst) begin
             busy <= 1'b0;
         end else begin
-            busy <= valid;
+            busy <= vld;
         end
     end
 

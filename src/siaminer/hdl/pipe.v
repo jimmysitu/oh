@@ -1,6 +1,7 @@
 module pipe(/*AUTOARG*/);
     input clk;
     input rst;
+    input found;
     input valid;
 
     input vldIn;
@@ -15,8 +16,8 @@ module pipe(/*AUTOARG*/);
         if(rst) begin
             vldOut <= 1'b0;
             m04Out <= 64'b0;
-        end else if(valid) begin
-            // clean pipeline when new work arrived
+        end else if(found | valid) begin
+            // clean pipeline when new work arrived or found
             vldOut <= 1'b0;
             m04Out <= 64'b0;
         end else begin

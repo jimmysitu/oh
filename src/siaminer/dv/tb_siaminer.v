@@ -296,12 +296,12 @@ integer wfon;
                 // check nonce
                 if(rx_cmd == 8'h00) begin
                     if(nonce == golden) begin
-                        $display($time, " Found nonce: 0x%08X, golden: 0x%08X", nonce, golden);
+                        $display($time, " Found nonce: 0x%08X, golden: 0x%08X ===================== pass!", nonce, golden);
                         // Next vector
                         @(posedge clk) found <= 1'b1;
                         @(posedge clk) found <= 1'b0;
                     end else begin
-                        $display($time, " Nonce: 0x%08X != Golden: 0x%08X, fail!", nonce, golden);
+                        $display($time, " Found nonce: 0x%08X, Golden: 0x%08X ===================== fail!", nonce, golden);
                         #100 $finish;
                     end
                 end
