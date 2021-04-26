@@ -7,7 +7,7 @@
 project_type = all -- { all, build, clang, data, doc, game, server, shell, web, ... }
 
 -- Project Settings:
-version = 12
+version = 13
 project_name = 'siaminer'
 
 -- File And Folder Filters:
@@ -18,6 +18,7 @@ file_ignore_pattern += *.bak,*.log,*.vvp,*.vcd,*.rc,*.fsdb
 
 -- Editing:
 indent = 4
+expand_tab = true -- { true, false }
 
 -- Building:
 builder = gulp -- { gulp, grunt, gcc, xcode, vs, unity3d, ... }
@@ -35,6 +36,8 @@ gsearch_engine = idutils -- { idutils, grep }
 enable_tags = true -- { true, false }
 enable_symbols = true -- { true, false }
 enable_inherits = true -- { true, false }
+enable_custom_tags = false -- { true, false }
+custom_tags_file =
 
 -- ex-cscope Options:
 enable_cscope = false -- { true, false }
